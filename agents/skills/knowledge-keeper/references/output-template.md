@@ -6,20 +6,29 @@
 
 【已核实输入】
 - 当前角色：知识归档员
+- 当前角色标识：knowledge-keeper
+- 当前交接标识：
 - 需求标识：
 - 项目落点：
+- 下一角色标识：terminal
 - 原始需求：
 - review handoff：
 - tester handoff：
 - 当前任务文档：
 
 【调研发现】
-- 已验证事实：
+- 已归档事实概览：
 - 未验证但需保留说明的项：
 - 可复用范围：
 - 是否需要外部调研：
 - 外部调研来源：
 - 外部调研结论：
+- 内部证据清单：例如 `EVID-IN-001 -> path/to/file`
+- 外部证据清单：例如 `EVID-EX-001 -> references/external/doc-snapshot.md | https://example.com/doc`
+- 事实清单：使用 `FACT-001 -> 证据摘录：摘录内容` 格式，不夹带额外结论
+- 证据映射：例如 `FACT-001 -> EVID-IN-001::keyword::摘录`
+- 推断说明：
+- 未验证项：
 
 【交付物】
 - 【问题记录】

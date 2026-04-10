@@ -106,10 +106,29 @@ If one or more sections are missing, do not advance. Ask for the missing handoff
 Treat the latest handoff block as incomplete unless it also records:
 
 ```md
-- 当前角色：
+- 当前角色标识：
+- 当前交接标识：
 - 需求标识：
 - 项目落点：
+- 下一角色标识：
 ```
+
+Treat the latest handoff block as incomplete unless it also records:
+
+```md
+- 内部证据清单：
+- 外部证据清单：
+- 事实清单：
+- 证据映射：
+- 推断说明：
+- 未验证项：
+```
+
+Treat role and evidence relationships as valid only when the stable identifiers match:
+
+- workflow routing uses `当前角色标识 / 下一角色标识 / 当前交接标识`
+- fact and evidence binding uses `FACT-* / EVID-IN-* / EVID-EX-*`
+- `当前角色` is display-only and must not be used as the primary routing key
 
 ### Skip Prevention
 

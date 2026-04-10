@@ -54,10 +54,34 @@ Inside `【交接给下一个角色】`, use Chinese labels:
 Inside each handoff block, also require these metadata labels:
 
 ```md
-- 当前角色：
+- 当前角色标识：
+- 当前交接标识：
 - 需求标识：
 - 项目落点：
+- 下一角色标识：
 ```
+
+Inside each handoff block, also require these quality labels:
+
+```md
+- 内部证据清单：
+- 外部证据清单：
+- 事实清单：
+- 证据映射：
+- 推断说明：
+- 未验证项：
+```
+
+Quality evidence expectations:
+
+- `当前角色标识` 和 `下一角色标识` 是 gate 进行角色流转校验的主字段。
+- `当前角色` 仅用于用户可读展示，不参与 gate 主校验。
+- `当前交接标识` 必须唯一，且必须包含相同的 `需求标识`。
+- `事实清单` 必须使用 `FACT-001 -> 证据摘录：摘录内容` 逐条列出。
+- `事实清单` 只允许记录证据摘录，不允许夹带未被映射证据直接支撑的额外结论。
+- `内部证据清单` 使用 `EVID-IN-001 -> path/to/file` 形式。
+- `外部证据清单` 使用 `EVID-EX-001 -> 本地快照路径 | https://...` 形式。
+- `证据映射` 使用 `FACT-001 -> EVID-IN-001::keyword::摘录` 或 `FACT-001 -> EVID-EX-001::anchor::摘录` 形式，为每条事实绑定证据。
 
 ## Allowed Transition Table
 
@@ -92,6 +116,7 @@ The next role may not:
 - skip required internal research
 - skip required external verification when current facts may have changed
 - continue coding in an existing undocumented project before minimum documentation has been backfilled
+- validate multiple unrelated handoffs in a single non-complete stage gate run
 
 ## Minimum Checks By Role
 
@@ -287,13 +312,19 @@ Use it to verify:
 - handoff documents contain mandatory sections
 - handoff documents contain the required Chinese sublabels
 - handoff documents record external research explicitly
-- handoff documents declare current role, requirement identifier, and project path explicitly
-- the latest handoff block routes to the expected next role for the validated stage
-- the latest handoff block declares the expected current role for the validated stage
+- handoff documents declare current role id, handoff id, requirement identifier, and project path explicitly
+- handoff documents declare evidence quality fields explicitly
+- the latest handoff block routes to the expected next role id for the validated stage
+- the latest handoff block declares the expected current role id for the validated stage
 - implementation targets stay inside the approved project path
 - existing-project work declares documentation state and any required backfill artifact
 - existing-project work points to the actual documentation artifact used for that declaration
 - documentation artifacts declare the same approved project path
+- documentation artifacts are stored inside the approved project path
+- internal evidence files resolve to real files inside the approved project path
+- external evidence items declare both a concrete traceable URL and a verifiable local snapshot when external research is required
+- evidence mappings bind each verified fact identifier to a real evidence item plus a searchable keyword and excerpt
+- fact lines must be excerpt-only records, not mixed fact-plus-inference sentences
 
 ## Enforcement Fallback Rule
 
@@ -315,3 +346,4 @@ Implementation may begin only after one of these is true:
 Use stage-specific gate validation as the workflow advances, and use the completion gate before declaring a requirement finished.
 The completion gate should validate the closing handoff chain from implementer to reviewer to tester to knowledge-keeper to terminal.
 The completion gate should also verify that the closing chain shares the same requirement identifier and approved project path.
+The workflow gate should run the handoff quality checker unconditionally during normal workflow execution.

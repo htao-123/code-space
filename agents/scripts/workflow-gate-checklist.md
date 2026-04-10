@@ -41,13 +41,32 @@ Mark each item before implementation begins.
   - `- 是否需要外部调研`
   - `- 外部调研来源`
   - `- 外部调研结论`
+- [ ] It records quality evidence explicitly:
+  - `- 内部证据清单：`
+  - `- 外部证据清单：`
+  - `- 事实清单：`
+  - `- 证据映射：`
+  - `- 推断说明：`
+  - `- 未验证项：`
 - [ ] It records required handoff metadata explicitly:
-  - `- 当前角色：`
+  - `- 当前角色标识：`
+  - `- 当前交接标识：`
   - `- 需求标识：`
   - `- 项目落点：`
+  - `- 下一角色标识：`
 - [ ] The latest handoff block, not an older block in the same file, is the one being validated
-- [ ] The latest handoff block routes to the expected next role for the current stage
-- [ ] The latest handoff block declares the expected current role for the current stage
+- [ ] The latest handoff block `下一角色标识` matches the validated stage transition
+- [ ] The latest handoff block `当前角色标识` matches the validated stage transition
+- [ ] The current `当前角色标识` content does not violate its role-specific禁止事项
+- [ ] The handoff does not use weak phrases such as “查过了” without evidence
+- [ ] `当前角色标识` and `下一角色标识` match the approved role transition
+- [ ] `当前交接标识` is unique and includes the same `需求标识`
+- [ ] `内部证据清单` uses `EVID-IN-* -> 文件路径` format and points to real files inside the approved project path
+- [ ] `外部证据清单` uses `EVID-EX-* -> 本地快照路径 | URL` format when external research is required
+- [ ] 外部证据快照文件存在且位于批准项目路径内
+- [ ] `事实清单` uses `FACT-* -> 事实内容` format and quotes the supporting evidence excerpt
+- [ ] `证据映射` binds each fact ID to `EVID-*::关键词::摘录`
+- [ ] 非 `complete` 阶段的 gate 一次只校验一个 `--handoff-doc`
 
 ### 3. Project Placement
 
@@ -57,8 +76,10 @@ Mark each item before implementation begins.
 - [ ] For existing-project work, documentation state is explicit: `documented` or `backfilled`
 - [ ] If the existing project is already documented, the exact documentation artifact is named
 - [ ] That documentation artifact declares the same approved `项目落点`
+- [ ] That documentation artifact is stored inside the approved project path
 - [ ] If the existing project required backfill, the backfill document exists and is recorded as a workflow artifact
 - [ ] That backfill document declares the same approved `项目落点`
+- [ ] That backfill document is stored inside the approved project path
 
 ### 4. Implementation Scope
 

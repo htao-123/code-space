@@ -36,10 +36,28 @@ Use this gate to verify:
 - required handoff documents contain the mandatory sections
 - required Chinese handoff sublabels exist
 - required research records exist
+- required quality evidence fields exist
+- the latest handoff block uses the expected role ids and handoff id metadata for the current stage
 - new-project work is not being placed at repository root unless explicitly allowed
 - existing-project work declares whether documentation was already usable or had to be backfilled
+- existing-project work points to the actual documentation artifact used for that declaration
+- existing-project documentation artifacts are stored inside the approved project path
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
+
+Run the appropriate stage gate, not only `--stage implementer`.
+Use later stages as the workflow advances, and use the completion gate before treating a requirement as finished.
+The completion gate should validate the closing chain from implementer through knowledge-keeper, not only the final archive block.
+The workflow gate should also run the handoff quality checker by default.
+The quality checker may not be disabled in normal workflow execution.
+Use stable identifiers for workflow and evidence relations:
+
+- `当前角色标识`
+- `下一角色标识`
+- `当前交接标识`
+- `FACT-*`
+- `EVID-IN-*`
+- `EVID-EX-*`
 
 ## Gate Fallback
 

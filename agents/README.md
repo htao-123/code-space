@@ -105,12 +105,22 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - [Pipeline Contract](./skills/ai-pipeline-orchestrator/references/pipeline-contract.md)
 - [Pipeline Demo](./skills/ai-pipeline-orchestrator/references/pipeline-demo.md)
 - [Workflow Gate Checker](./scripts/check_workflow_gate.py)
+- [Handoff Quality Checker](./scripts/check_handoff_quality.py)
 - [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
 - [External Research Playbook](./references/external-research-playbook.md)
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
 The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
 The completion gate is expected to validate the closing chain from implementer through knowledge-keeper.
+The workflow gate also runs the handoff quality checker by default.
+The quality checker is mandatory during normal workflow execution.
+Relationship validation now prefers stable IDs over free-text matching.
+Use `当前角色标识 / 下一角色标识 / 当前交接标识` for workflow routing.
+Treat `当前角色` as display-only text, not a gate source of truth.
+Use `FACT-* / EVID-IN-* / EVID-EX-*` identifiers for facts and evidence.
+Use `EVID-EX-* -> 本地快照路径 | URL` for external evidence targets.
+Write fact items as `FACT-001 -> 证据摘录：摘录内容`.
+Write evidence mappings as `FACT-001 -> EVID-IN-001::keyword::摘录`.
 
 ## Output Templates
 

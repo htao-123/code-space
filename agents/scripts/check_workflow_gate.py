@@ -6,6 +6,7 @@ Workflow gate checker for the AI engineering pipeline.
 from __future__ import annotations
 
 import argparse
+import subprocess
 import re
 import sys
 from pathlib import Path
@@ -36,31 +37,33 @@ REQUIRED_RESEARCH_LABELS = [
 ]
 
 REQUIRED_METADATA_LABELS = [
-    "- 当前角色：",
+    "- 当前角色标识：",
+    "- 当前交接标识：",
     "- 需求标识：",
     "- 项目落点：",
+    "- 下一角色标识：",
 ]
 
 STAGE_EXPECTATIONS = {
     "implementer": {
-        "current_roles": ["方案设计师"],
-        "next_roles": ["开发者"],
+        "current_role_ids": ["solution-designer"],
+        "next_role_ids": ["implementer"],
     },
     "reviewer": {
-        "current_roles": ["开发者"],
-        "next_roles": ["审核员"],
+        "current_role_ids": ["implementer"],
+        "next_role_ids": ["reviewer"],
     },
     "tester": {
-        "current_roles": ["审核员"],
-        "next_roles": ["测试员"],
+        "current_role_ids": ["reviewer"],
+        "next_role_ids": ["tester"],
     },
     "knowledge-keeper": {
-        "current_roles": ["测试员"],
-        "next_roles": ["知识归档员"],
+        "current_role_ids": ["tester"],
+        "next_role_ids": ["knowledge-keeper"],
     },
     "complete": {
-        "current_roles": ["开发者", "审核员", "测试员", "知识归档员"],
-        "next_roles": ["审核员", "测试员", "知识归档员", "无"],
+        "current_role_ids": ["implementer", "reviewer", "tester", "knowledge-keeper"],
+        "next_role_ids": ["reviewer", "tester", "knowledge-keeper", "terminal"],
     },
 }
 
@@ -110,8 +113,8 @@ def check_handoff_doc(
     errors: list[str],
     repo_root: Path,
     approved_project_path: Path,
-    expected_current_role: str | None = None,
-    expected_next_role: str | None = None,
+    expected_current_role_id: str | None = None,
+    expected_next_role_id: str | None = None,
 ) -> dict[str, str] | None:
     check_file_exists(path, "Handoff document", errors, repo_root)
     if errors and not path.exists():
@@ -162,13 +165,19 @@ def check_handoff_doc(
             f"{repo_relative(path, repo_root)}: {', '.join(missing_metadata)}"
         )
 
-    current_role = extract_label_value(block, "- 当前角色：")
+    current_role_id = extract_label_value(block, "- 当前角色标识：")
+    handoff_id = extract_label_value(block, "- 当前交接标识：")
     requirement_id = extract_label_value(block, "- 需求标识：")
     declared_project_path = extract_label_value(block, "- 项目落点：")
+    next_role_id = extract_label_value(block, "- 下一角色标识：")
 
-    if current_role is None:
+    if current_role_id is None:
         errors.append(
-            f"Latest handoff block missing current role metadata in {repo_relative(path, repo_root)}"
+            f"Latest handoff block missing current role id metadata in {repo_relative(path, repo_root)}"
+        )
+    if handoff_id is None:
+        errors.append(
+            f"Latest handoff block missing handoff identifier in {repo_relative(path, repo_root)}"
         )
     if requirement_id is None:
         errors.append(
@@ -185,29 +194,46 @@ def check_handoff_doc(
                 "Latest handoff block project path does not match approved project path in "
                 f"{repo_relative(path, repo_root)}: declared {declared_project_path}"
             )
+    if next_role_id is None:
+        errors.append(
+            f"Latest handoff block missing next role id metadata in {repo_relative(path, repo_root)}"
+        )
 
-    if expected_current_role is not None and current_role is not None:
-        if current_role != expected_current_role:
+    if expected_current_role_id is not None and current_role_id is not None:
+        if current_role_id != expected_current_role_id:
             errors.append(
-                "Latest handoff block has the wrong current role in "
-                f"{repo_relative(path, repo_root)}: expected {expected_current_role}, got {current_role}"
+                "Latest handoff block has the wrong current role id in "
+                f"{repo_relative(path, repo_root)}: expected {expected_current_role_id}, got {current_role_id}"
             )
 
-    if expected_next_role is not None:
-        expected_label = f"- 下一角色：{expected_next_role}"
-        if expected_label not in block:
+    if expected_next_role_id is not None and next_role_id is not None:
+        if next_role_id != expected_next_role_id:
             errors.append(
-                "Latest handoff block routes to the wrong next role in "
-                f"{repo_relative(path, repo_root)}: expected {expected_label}"
+                "Latest handoff block routes to the wrong next role id in "
+                f"{repo_relative(path, repo_root)}: expected {expected_next_role_id}, got {next_role_id}"
             )
 
-    if current_role is None or requirement_id is None or declared_project_path is None:
+    if handoff_id is not None and requirement_id is not None and requirement_id not in handoff_id:
+        errors.append(
+            "Latest handoff block handoff identifier must include requirement identifier in "
+            f"{repo_relative(path, repo_root)}: handoff {handoff_id}, requirement {requirement_id}"
+        )
+
+    if (
+        current_role_id is None
+        or handoff_id is None
+        or requirement_id is None
+        or declared_project_path is None
+        or next_role_id is None
+    ):
         return None
 
     return {
-        "current_role": current_role,
+        "current_role_id": current_role_id,
+        "handoff_id": handoff_id,
         "requirement_id": requirement_id,
         "project_path": declared_project_path,
+        "next_role_id": next_role_id,
     }
 
 
@@ -234,6 +260,13 @@ def check_documentation_artifact(
         errors.append(
             f"{label} project path does not match approved project path in {repo_relative(path, repo_root)}: "
             f"declared {declared_project_path}"
+        )
+    try:
+        path.resolve().relative_to(approved_project_path.resolve())
+    except ValueError:
+        errors.append(
+            f"{label} is not stored inside the approved project path: "
+            f"{repo_relative(path, repo_root)} not under {repo_relative(approved_project_path, repo_root)}"
         )
 
 
@@ -328,7 +361,6 @@ def main() -> int:
         action="store_true",
         help="Allow repository root placement. Use only for explicitly approved exceptions.",
     )
-
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
@@ -414,33 +446,33 @@ def main() -> int:
     expectations = STAGE_EXPECTATIONS.get(args.stage)
     metadata_chain: list[dict[str, str]] = []
     if expectations:
-        expected_current_roles = expectations["current_roles"]
-        expected_next_roles = expectations["next_roles"]
-        if len(expected_next_roles) == 1:
-            expected_current_role_list = expected_current_roles * len(handoff_docs)
-            expected_next_role_list = expected_next_roles * len(handoff_docs)
+        expected_current_role_ids = expectations["current_role_ids"]
+        expected_next_role_ids = expectations["next_role_ids"]
+        if len(expected_next_role_ids) == 1:
+            expected_current_role_id_list = expected_current_role_ids * len(handoff_docs)
+            expected_next_role_id_list = expected_next_role_ids * len(handoff_docs)
         else:
-            expected_current_role_list = expected_current_roles
-            expected_next_role_list = expected_next_roles
-            if len(handoff_docs) != len(expected_next_roles):
+            expected_current_role_id_list = expected_current_role_ids
+            expected_next_role_id_list = expected_next_role_ids
+            if len(handoff_docs) != len(expected_next_role_ids):
                 errors.append(
-                    f"{args.stage} stage requires exactly {len(expected_next_roles)} --handoff-doc values "
+                    f"{args.stage} stage requires exactly {len(expected_next_role_ids)} --handoff-doc values "
                     "to validate the closing handoff chain."
                 )
         for index, handoff_doc in enumerate(handoff_docs):
-            expected_current_role = None
-            expected_next_role = None
-            if index < len(expected_current_role_list):
-                expected_current_role = expected_current_role_list[index]
-            if index < len(expected_next_role_list):
-                expected_next_role = expected_next_role_list[index]
+            expected_current_role_id = None
+            expected_next_role_id = None
+            if index < len(expected_current_role_id_list):
+                expected_current_role_id = expected_current_role_id_list[index]
+            if index < len(expected_next_role_id_list):
+                expected_next_role_id = expected_next_role_id_list[index]
             metadata = check_handoff_doc(
                 handoff_doc,
                 errors,
                 repo_root,
                 project_path,
-                expected_current_role=expected_current_role,
-                expected_next_role=expected_next_role,
+                expected_current_role_id=expected_current_role_id,
+                expected_next_role_id=expected_next_role_id,
             )
             if metadata is not None:
                 metadata_chain.append(metadata)
@@ -468,12 +500,19 @@ def main() -> int:
                 "Completion chain mixes multiple declared project paths: "
                 f"{', '.join(sorted(declared_project_paths))}"
             )
+        handoff_ids = [metadata["handoff_id"] for metadata in metadata_chain]
+        if len(set(handoff_ids)) != len(handoff_ids):
+            errors.append("Completion chain reuses duplicate handoff identifiers.")
 
     if args.stage in {"implementer", "reviewer", "tester", "knowledge-keeper", "complete"}:
         if not handoff_docs:
             errors.append(
                 f"{args.stage} stage requires at least one --handoff-doc with a valid structured handoff."
             )
+    if args.stage in {"implementer", "reviewer", "tester", "knowledge-keeper"} and len(handoff_docs) != 1:
+        errors.append(
+            f"{args.stage} stage requires exactly one --handoff-doc so each gate run validates a single requirement transition."
+        )
 
     if args.stage == "implementer":
         if not target_paths:
@@ -483,6 +522,28 @@ def main() -> int:
 
     if target_paths:
         check_target_paths(target_paths, project_path, errors, repo_root)
+
+    quality_script = repo_root / "agents/scripts/check_handoff_quality.py"
+    for handoff_doc in handoff_docs:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(quality_script),
+                "--repo-root",
+                str(repo_root),
+                "--handoff-doc",
+                str(handoff_doc),
+                "--project-path",
+                str(project_path),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            detail = result.stdout.strip() or result.stderr.strip() or "unknown quality check failure"
+            errors.append(
+                f"Handoff quality check failed for {repo_relative(handoff_doc, repo_root)}: {detail}"
+            )
 
     if errors:
         print("[FAIL] Workflow gate check failed:")
