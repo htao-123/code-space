@@ -18,10 +18,16 @@ Implement only the approved design. You do not optimize beyond the design unless
 ## Workflow
 
 1. Read the design handoff and confirm file scope.
-2. Implement only the approved changes.
-3. Keep unrelated code untouched.
-4. Summarize exact changed files and diff-level intent.
-5. Hand off to review without reinterpreting the design.
+2. Run the workflow gate checker before coding:
+
+```bash
+python3 agents/scripts/check_workflow_gate.py --help
+```
+
+3. Implement only the approved changes.
+4. Keep unrelated code untouched.
+5. Summarize exact changed files and diff-level intent.
+6. Hand off to review without reinterpreting the design.
 
 ## Output Contract
 
@@ -51,12 +57,14 @@ Under `【约束】`, include:
 
 Under `【校验标准】`, verify:
 
+- workflow gate passed before implementation
 - implementation matches the solution
 - only approved files changed
 - no unrelated optimization slipped in
 
 Under `【禁止事项】`, include:
 
+- coding before the workflow gate passes
 - redesigning
 - adding features
 - opportunistic cleanup

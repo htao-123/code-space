@@ -15,6 +15,10 @@ This document defines the shared contract across the 8 role skills.
 
 No role may skip forward.
 No role may merge with another role.
+No agent may replace this workflow with a self-invented process.
+No agent may decide that the workflow is optional just because the task feels simple.
+No new project or substantial subproject may be scattered across repository root when it should live in a dedicated folder.
+No implementation may begin until the current task is documented in a handoff or task document.
 
 ## Mandatory Handoff Shape
 
@@ -57,6 +61,10 @@ The next role may not:
 - import assumptions from older incomplete drafts
 - bypass prior constraints
 - invent missing evidence
+- invent a shortcut workflow outside this contract
+- combine two role responsibilities "for convenience"
+- begin implementing a new project before its folder placement is defined
+- rely on unstated memory when the current task document has not been created or updated
 
 ## Minimum Checks By Role
 
@@ -117,6 +125,9 @@ The pipeline must stop when:
 - the user asks to skip a mandatory gate
 - current work conflicts with prior constraints
 - implementation or review evidence is missing for later stages
+- any agent attempts to improvise an alternative process outside this contract
+- a new project is being created but no dedicated folder has been defined yet
+- the current task has no up-to-date handoff or planning document
 
 ## Recovery Rules
 
@@ -127,3 +138,62 @@ If the pipeline is blocked:
 3. route back to the exact role that must repair the gap
 
 Do not repair the gap inside the orchestrator.
+Do not solve the blockage by inventing a new workflow.
+
+## Project Placement Rule
+
+For any new website, app, tool, or standalone deliverable:
+
+1. choose the project folder during requirement or architecture stages
+2. keep related implementation files inside that folder
+3. avoid scattering project files across repository root
+
+Root-level placement is allowed only when the user explicitly requests it and the handoff records that exception.
+
+For work inside an existing project:
+
+1. identify whether the change belongs to an existing module or a new subproject folder
+2. record that landing zone in the handoff before implementation
+3. keep implementation inside the approved existing path or approved new subfolder
+
+## Documentation-First Rule
+
+For every active development task:
+
+1. write or update the current task document before implementation
+2. keep the document aligned with the latest handoff state
+3. if the plan, scope, or landing zone changes, update the document first
+
+The purpose is to ensure continuity across sessions and prevent the workflow from depending on agent memory.
+
+## Enforcement Recommendation
+
+Before implementation, run the repository gate checker:
+
+```bash
+python3 agents/scripts/check_workflow_gate.py --help
+```
+
+Use it to verify:
+
+- current task document exists
+- project path or landing zone is defined
+- handoff documents contain mandatory sections
+- implementation targets stay inside the approved project path
+
+## Enforcement Fallback Rule
+
+Automatic gate first, manual checklist second.
+
+If the gate script cannot run because the environment is missing a required runtime or command:
+
+1. report the exact failure
+2. perform a lightweight preflight when possible
+3. fall back to the manual checklist
+
+The workflow must not skip enforcement just because automation is unavailable.
+
+Implementation may begin only after one of these is true:
+
+- the automatic gate passes
+- the manual checklist has been completed and recorded in the task document

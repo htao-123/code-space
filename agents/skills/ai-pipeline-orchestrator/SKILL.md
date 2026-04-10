@@ -11,6 +11,10 @@ Act as the controller for the AI engineering pipeline. Your job is not to replac
 
 Use [pipeline-contract.md](./references/pipeline-contract.md) as the source of truth for role order, handoff validity, stop conditions, and recovery rules.
 
+This skill must override any tendency to "just do the work directly" or to invent a shortcut. When this workflow exists, you must obey it strictly.
+This also includes structure decisions: when creating a new project or substantial subproject, require a dedicated folder instead of scattering files at repository root.
+This also includes documentation discipline: before development begins, require a current task document or handoff record so progress does not depend on memory alone.
+
 ## When To Use
 
 - The user wants to run the full AI engineering workflow instead of jumping straight to code.
@@ -33,6 +37,8 @@ The only valid order is:
 
 You may start later than step 1 only if a valid handoff for the prior step is already present in the conversation or task materials.
 
+You may not create an alternative route, compress multiple roles into one step, or silently substitute your own preferred process.
+
 ## Routing Rules
 
 ### Start Detection
@@ -45,6 +51,24 @@ You may start later than step 1 only if a valid handoff for the prior step is al
 - If there is an implementation handoff but no review handoff, route to `reviewer`.
 - If there is a review handoff but no test handoff, route to `tester`.
 - If there is a test handoff but no archive handoff, route to `knowledge-keeper`.
+
+### Project Placement Check
+
+- If the task creates a new app, site, tool, or substantial standalone artifact, confirm that a dedicated project folder exists before implementation begins.
+- If no dedicated folder has been chosen yet, keep the pipeline at `requirement-analyst` or `architect` until the placement is explicit.
+- Treat root-level scattering of project files as a process violation unless the user explicitly requested a root-only structure.
+
+### Existing Project Check
+
+- If the task is based on an existing project, determine during `requirement-analyst` or `architect` whether the work belongs in an existing module or in a new dedicated subfolder inside that project.
+- Do not assume "existing project" means "edit files in place immediately".
+- The file or directory landing zone must be named explicitly in the handoff before implementation begins.
+
+### Documentation-First Check
+
+- Before implementation, confirm that the current task has a written handoff or task document that reflects the latest understanding.
+- If the task changes materially, update that document before continuing development.
+- Treat undocumented implementation as a process violation because it makes the workflow depend on memory.
 
 ### Handoff Validity Check
 
@@ -71,13 +95,20 @@ Reject requests like:
 
 Unless the user explicitly wants to abandon the pipeline. If they do, say that the request falls outside this skill's contract.
 
+Also reject internal shortcuts such as:
+
+- combining analyst and architect output in one role pass
+- designing while investigating
+- implementing while "briefly" reviewing your own code
+- archiving without an explicit tester handoff
+
 ## Workflow
 
 1. Inspect the conversation or task materials for the latest valid handoff.
 2. Determine the current pipeline state.
 3. Name the one and only next valid role.
 4. Pass forward only the allowed inputs from the previous handoff.
-5. Refuse any attempt to merge responsibilities or skip gates.
+5. Refuse any attempt to merge responsibilities, improvise a new process, or skip gates.
 6. Repeat until `knowledge-keeper` completes.
 
 ## Output Contract
@@ -114,12 +145,15 @@ Under `【缺失项】`, include:
 - missing handoff sections
 - missing evidence
 - conflicts between previous constraints and current request
+- missing dedicated project folder decision when the task creates a new project
+- missing current task document or stale handoff that no longer matches the work
 
 Under `【执行规则】`, include:
 
 - the next role may only use the listed inputs
 - the next role may not absorb another role's responsibility
 - the next role must emit a full structured handoff
+- no one may replace this pipeline with an improvised workflow
 
 Under `【停止条件】`, include:
 
@@ -133,6 +167,10 @@ Under `【停止条件】`, include:
 - combining multiple roles into one response
 - silently fixing broken handoffs
 - allowing unverified work to pass into implementation or archival
+- bypassing this workflow because the agent thinks a shortcut is faster
+- inventing a parallel "lightweight" process without explicit approval
+- starting a new project in the repository root before deciding its dedicated folder
+- implementing from memory without first updating the current task document
 
 ## Examples
 

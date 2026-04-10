@@ -6,6 +6,17 @@ This directory contains a constrained AI engineering workflow built from reusabl
 
 Start with [ai-pipeline-orchestrator](./skills/ai-pipeline-orchestrator/SKILL.md) when you want the workflow to decide the correct next step and prevent skipping required gates.
 
+## Hard Rule
+
+Do not invent a parallel process, shortcut, or "better" workflow outside this system.
+Do not merge multiple roles into one execution step.
+Do not skip a role because it seems obvious.
+Do not continue when the immediately prior valid handoff is missing.
+Do not scatter a new project across the repository root; place it in a dedicated project folder first.
+Do not start development before writing the current task's handoff or planning document.
+
+If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
+
 ## Skills
 
 ### Orchestrator
@@ -62,11 +73,17 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 
 - Each role may use only the original request, the latest valid handoff, and any repository facts explicitly allowed by that role.
 - The orchestrator is the source of truth for deciding the next step.
+- No agent may replace this workflow with its own improvised process.
+- If there is any doubt, fall back to the orchestrator instead of continuing free-form.
+- New builds or substantial subprojects must live in a dedicated folder instead of the repository root.
+- Development is document-first: create or update the current task document before implementation so the workflow does not depend on memory.
 
 ## Useful References
 
 - [Pipeline Contract](./skills/ai-pipeline-orchestrator/references/pipeline-contract.md)
 - [Pipeline Demo](./skills/ai-pipeline-orchestrator/references/pipeline-demo.md)
+- [Workflow Gate Checker](./scripts/check_workflow_gate.py)
+- [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
 
 ## Output Templates
 
