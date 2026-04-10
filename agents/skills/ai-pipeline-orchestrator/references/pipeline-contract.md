@@ -314,8 +314,9 @@ Use it to verify:
 - handoff documents record external research explicitly
 - handoff documents declare current role id, handoff id, requirement identifier, and project path explicitly
 - handoff documents declare evidence quality fields explicitly
-- the latest handoff block routes to the expected next role id for the validated stage
-- the latest handoff block declares the expected current role id for the validated stage
+- for non-`complete` stages, the current document's latest handoff block routes to the expected next role id for the validated stage
+- for non-`complete` stages, the current document's latest handoff block declares the expected current role id for the validated stage
+- for `complete` stage, the validated closing handoff chain routes through the expected role ids in order
 - implementation targets stay inside the approved project path
 - existing-project work declares documentation state and any required backfill artifact
 - existing-project work points to the actual documentation artifact used for that declaration

@@ -37,7 +37,7 @@ Use this gate to verify:
 - required Chinese handoff sublabels exist
 - required research records exist
 - required quality evidence fields exist
-- the latest handoff block uses the expected role ids and handoff id metadata for the current stage
+- the validated handoff block or validated closing chain uses the expected role ids and handoff id metadata for the current stage
 - new-project work is not being placed at repository root unless explicitly allowed
 - existing-project work declares whether documentation was already usable or had to be backfilled
 - existing-project work points to the actual documentation artifact used for that declaration

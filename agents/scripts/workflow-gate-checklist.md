@@ -54,9 +54,9 @@ Mark each item before implementation begins.
   - `- 需求标识：`
   - `- 项目落点：`
   - `- 下一角色标识：`
-- [ ] The latest handoff block, not an older block in the same file, is the one being validated
-- [ ] The latest handoff block `下一角色标识` matches the validated stage transition
-- [ ] The latest handoff block `当前角色标识` matches the validated stage transition
+- [ ] 非 `complete` 阶段校验的是当前文档的最新 handoff block；`complete` 阶段校验的是同一需求最近的收尾链 block
+- [ ] 被校验的 handoff block `下一角色标识` matches the validated stage transition
+- [ ] 被校验的 handoff block `当前角色标识` matches the validated stage transition
 - [ ] The current `当前角色标识` content does not violate its role-specific禁止事项
 - [ ] The handoff does not use weak phrases such as “查过了” without evidence
 - [ ] `当前角色标识` and `下一角色标识` match the approved role transition
@@ -64,7 +64,7 @@ Mark each item before implementation begins.
 - [ ] `内部证据清单` uses `EVID-IN-* -> 文件路径` format and points to real files inside the approved project path
 - [ ] `外部证据清单` uses `EVID-EX-* -> 本地快照路径 | URL` format when external research is required
 - [ ] 外部证据快照文件存在且位于批准项目路径内
-- [ ] `事实清单` uses `FACT-* -> 事实内容` format and quotes the supporting evidence excerpt
+- [ ] `事实清单` uses `FACT-* -> 证据摘录：摘录内容` format
 - [ ] `证据映射` binds each fact ID to `EVID-*::关键词::摘录`
 - [ ] 非 `complete` 阶段的 gate 一次只校验一个 `--handoff-doc`
 
@@ -96,11 +96,11 @@ Mark each item before implementation begins.
 
 Implementation may start only when every applicable checkbox is complete.
 
-Before treating a requirement as finished, confirm that the latest handoff block routes to:
+Before treating a requirement as finished, confirm that the final block in the validated closing chain routes to:
 
 - `- 下一角色：无`
 
-Also confirm that the closing chain exists and is ordered:
+Also confirm that the validated closing chain exists and is ordered:
 
 - implementer handoff -> `- 下一角色：审核员`
 - reviewer handoff -> `- 下一角色：测试员`

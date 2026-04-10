@@ -86,6 +86,17 @@ def extract_last_handoff_block(text: str) -> str:
     return text[positions[-1]:]
 
 
+def extract_all_handoff_blocks(text: str) -> list[str]:
+    positions = [match.start() for match in re.finditer(re.escape("【角色结论】"), text)]
+    if not positions:
+        return []
+    blocks: list[str] = []
+    for index, start in enumerate(positions):
+        end = positions[index + 1] if index + 1 < len(positions) else len(text)
+        blocks.append(text[start:end])
+    return blocks
+
+
 def extract_label_value(text: str, label: str) -> str | None:
     pattern = rf"(?m)^{re.escape(label)}\s*(.+?)\s*$"
     match = re.search(pattern, text)
@@ -115,16 +126,19 @@ def check_handoff_doc(
     approved_project_path: Path,
     expected_current_role_id: str | None = None,
     expected_next_role_id: str | None = None,
+    block_override: str | None = None,
+    block_label: str | None = None,
 ) -> dict[str, str] | None:
     check_file_exists(path, "Handoff document", errors, repo_root)
     if errors and not path.exists():
         return None
 
     text = read_text(path)
-    block = extract_last_handoff_block(text)
+    block = block_override if block_override is not None else extract_last_handoff_block(text)
+    location_label = block_label or repo_relative(path, repo_root)
     if not block:
         errors.append(
-            f"Handoff document does not contain any handoff block: {repo_relative(path, repo_root)}"
+            f"Handoff document does not contain any handoff block: {location_label}"
         )
         return None
 
@@ -132,7 +146,7 @@ def check_handoff_doc(
     if missing:
         errors.append(
             "Latest handoff block missing required sections in "
-            f"{repo_relative(path, repo_root)}: {', '.join(missing)}"
+            f"{location_label}: {', '.join(missing)}"
         )
 
     heading_positions = [block.find(heading) for heading in REQUIRED_HEADINGS]
@@ -141,28 +155,28 @@ def check_handoff_doc(
     elif heading_positions != sorted(heading_positions):
         errors.append(
             "Latest handoff block has headings out of order in "
-            f"{repo_relative(path, repo_root)}"
+            f"{location_label}"
         )
 
     missing_sublabels = [label for label in REQUIRED_HANDOFF_SUBLABELS if label not in block]
     if missing_sublabels:
         errors.append(
             "Latest handoff block missing required Chinese handoff labels in "
-            f"{repo_relative(path, repo_root)}: {', '.join(missing_sublabels)}"
+            f"{location_label}: {', '.join(missing_sublabels)}"
         )
 
     missing_research = [label for label in REQUIRED_RESEARCH_LABELS if label not in block]
     if missing_research:
         errors.append(
             "Latest handoff block missing required research records in "
-            f"{repo_relative(path, repo_root)}: {', '.join(missing_research)}"
+            f"{location_label}: {', '.join(missing_research)}"
         )
 
     missing_metadata = [label for label in REQUIRED_METADATA_LABELS if label not in block]
     if missing_metadata:
         errors.append(
             "Latest handoff block missing required metadata labels in "
-            f"{repo_relative(path, repo_root)}: {', '.join(missing_metadata)}"
+            f"{location_label}: {', '.join(missing_metadata)}"
         )
 
     current_role_id = extract_label_value(block, "- 当前角色标识：")
@@ -173,50 +187,50 @@ def check_handoff_doc(
 
     if current_role_id is None:
         errors.append(
-            f"Latest handoff block missing current role id metadata in {repo_relative(path, repo_root)}"
+            f"Latest handoff block missing current role id metadata in {location_label}"
         )
     if handoff_id is None:
         errors.append(
-            f"Latest handoff block missing handoff identifier in {repo_relative(path, repo_root)}"
+            f"Latest handoff block missing handoff identifier in {location_label}"
         )
     if requirement_id is None:
         errors.append(
-            f"Latest handoff block missing requirement identifier in {repo_relative(path, repo_root)}"
+            f"Latest handoff block missing requirement identifier in {location_label}"
         )
     if declared_project_path is None:
         errors.append(
-            f"Latest handoff block missing project path metadata in {repo_relative(path, repo_root)}"
+            f"Latest handoff block missing project path metadata in {location_label}"
         )
     else:
         resolved_declared_project_path = resolve_declared_project_path(declared_project_path, repo_root)
         if resolved_declared_project_path != approved_project_path.resolve():
             errors.append(
                 "Latest handoff block project path does not match approved project path in "
-                f"{repo_relative(path, repo_root)}: declared {declared_project_path}"
+                f"{location_label}: declared {declared_project_path}"
             )
     if next_role_id is None:
         errors.append(
-            f"Latest handoff block missing next role id metadata in {repo_relative(path, repo_root)}"
+            f"Latest handoff block missing next role id metadata in {location_label}"
         )
 
     if expected_current_role_id is not None and current_role_id is not None:
         if current_role_id != expected_current_role_id:
             errors.append(
                 "Latest handoff block has the wrong current role id in "
-                f"{repo_relative(path, repo_root)}: expected {expected_current_role_id}, got {current_role_id}"
+                f"{location_label}: expected {expected_current_role_id}, got {current_role_id}"
             )
 
     if expected_next_role_id is not None and next_role_id is not None:
         if next_role_id != expected_next_role_id:
             errors.append(
                 "Latest handoff block routes to the wrong next role id in "
-                f"{repo_relative(path, repo_root)}: expected {expected_next_role_id}, got {next_role_id}"
+                f"{location_label}: expected {expected_next_role_id}, got {next_role_id}"
             )
 
     if handoff_id is not None and requirement_id is not None and requirement_id not in handoff_id:
         errors.append(
             "Latest handoff block handoff identifier must include requirement identifier in "
-            f"{repo_relative(path, repo_root)}: handoff {handoff_id}, requirement {requirement_id}"
+            f"{location_label}: handoff {handoff_id}, requirement {requirement_id}"
         )
 
     if (
@@ -448,7 +462,37 @@ def main() -> int:
     if expectations:
         expected_current_role_ids = expectations["current_role_ids"]
         expected_next_role_ids = expectations["next_role_ids"]
-        if len(expected_next_role_ids) == 1:
+        if args.stage == "complete" and len(handoff_docs) == 1:
+            handoff_doc = handoff_docs[0]
+            check_file_exists(handoff_doc, "Handoff document", errors, repo_root)
+            if handoff_doc.exists() and not handoff_doc.is_dir():
+                blocks = extract_all_handoff_blocks(read_text(handoff_doc))
+                if len(blocks) < len(expected_next_role_ids):
+                    errors.append(
+                        f"complete stage requires at least {len(expected_next_role_ids)} handoff blocks in "
+                        f"{repo_relative(handoff_doc, repo_root)}."
+                    )
+                else:
+                    recent_blocks = blocks[-len(expected_next_role_ids):]
+                    for index, block in enumerate(recent_blocks):
+                        metadata = check_handoff_doc(
+                            handoff_doc,
+                            errors,
+                            repo_root,
+                            project_path,
+                            expected_current_role_id=expected_current_role_ids[index],
+                            expected_next_role_id=expected_next_role_ids[index],
+                            block_override=block,
+                            block_label=(
+                                f"{repo_relative(handoff_doc, repo_root)}#handoff-{len(blocks) - len(recent_blocks) + index + 1}"
+                            ),
+                        )
+                        if metadata is not None:
+                            metadata_chain.append(metadata)
+            expectations = None
+        if expectations is None:
+            pass
+        elif len(expected_next_role_ids) == 1:
             expected_current_role_id_list = expected_current_role_ids * len(handoff_docs)
             expected_next_role_id_list = expected_next_role_ids * len(handoff_docs)
         else:
@@ -459,23 +503,24 @@ def main() -> int:
                     f"{args.stage} stage requires exactly {len(expected_next_role_ids)} --handoff-doc values "
                     "to validate the closing handoff chain."
                 )
-        for index, handoff_doc in enumerate(handoff_docs):
-            expected_current_role_id = None
-            expected_next_role_id = None
-            if index < len(expected_current_role_id_list):
-                expected_current_role_id = expected_current_role_id_list[index]
-            if index < len(expected_next_role_id_list):
-                expected_next_role_id = expected_next_role_id_list[index]
-            metadata = check_handoff_doc(
-                handoff_doc,
-                errors,
-                repo_root,
-                project_path,
-                expected_current_role_id=expected_current_role_id,
-                expected_next_role_id=expected_next_role_id,
-            )
-            if metadata is not None:
-                metadata_chain.append(metadata)
+        if expectations is not None:
+            for index, handoff_doc in enumerate(handoff_docs):
+                expected_current_role_id = None
+                expected_next_role_id = None
+                if index < len(expected_current_role_id_list):
+                    expected_current_role_id = expected_current_role_id_list[index]
+                if index < len(expected_next_role_id_list):
+                    expected_next_role_id = expected_next_role_id_list[index]
+                metadata = check_handoff_doc(
+                    handoff_doc,
+                    errors,
+                    repo_root,
+                    project_path,
+                    expected_current_role_id=expected_current_role_id,
+                    expected_next_role_id=expected_next_role_id,
+                )
+                if metadata is not None:
+                    metadata_chain.append(metadata)
     else:
         for handoff_doc in handoff_docs:
             metadata = check_handoff_doc(
@@ -524,26 +569,42 @@ def main() -> int:
         check_target_paths(target_paths, project_path, errors, repo_root)
 
     quality_script = repo_root / "agents/scripts/check_handoff_quality.py"
-    for handoff_doc in handoff_docs:
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(quality_script),
-                "--repo-root",
-                str(repo_root),
-                "--handoff-doc",
-                str(handoff_doc),
-                "--project-path",
-                str(project_path),
-            ],
-            capture_output=True,
-            text=True,
-        )
+    quality_targets: list[tuple[Path, int | None, str]] = []
+    if args.stage == "complete" and len(handoff_docs) == 1:
+        handoff_doc = handoff_docs[0]
+        if handoff_doc.exists() and not handoff_doc.is_dir():
+            blocks = extract_all_handoff_blocks(read_text(handoff_doc))
+            if len(blocks) >= len(STAGE_EXPECTATIONS["complete"]["current_role_ids"]):
+                start_index = len(blocks) - len(STAGE_EXPECTATIONS["complete"]["current_role_ids"])
+                for block_index in range(start_index, len(blocks)):
+                    quality_targets.append(
+                        (
+                            handoff_doc,
+                            block_index,
+                            f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}",
+                        )
+                    )
+    else:
+        for handoff_doc in handoff_docs:
+            quality_targets.append((handoff_doc, None, repo_relative(handoff_doc, repo_root)))
+
+    for handoff_doc, block_index, label in quality_targets:
+        command = [
+            sys.executable,
+            str(quality_script),
+            "--repo-root",
+            str(repo_root),
+            "--handoff-doc",
+            str(handoff_doc),
+            "--project-path",
+            str(project_path),
+        ]
+        if block_index is not None:
+            command.extend(["--block-index", str(block_index)])
+        result = subprocess.run(command, capture_output=True, text=True)
         if result.returncode != 0:
             detail = result.stdout.strip() or result.stderr.strip() or "unknown quality check failure"
-            errors.append(
-                f"Handoff quality check failed for {repo_relative(handoff_doc, repo_root)}: {detail}"
-            )
+            errors.append(f"Handoff quality check failed for {label}: {detail}")
 
     if errors:
         print("[FAIL] Workflow gate check failed:")
