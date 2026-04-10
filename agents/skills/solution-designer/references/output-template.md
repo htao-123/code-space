@@ -11,6 +11,11 @@
 - 需求标识：
 - 项目落点：
 - 下一角色标识：implementer
+- 问题类型：
+- 复现步骤：
+- 预期结果：
+- 实际结果：
+- 根因摘要：
 - 原始需求：
 - architect handoff：
 - code-investigator handoff：

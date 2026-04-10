@@ -24,6 +24,7 @@ Every requirement must run through the full workflow until `knowledge-keeper`, u
 User-facing workflow communication should use Chinese role names and Chinese progression language.
 For roles 2-8, research is mandatory before formal output.
 If an existing project lacks usable documentation, minimum documentation backfill is mandatory before normal development continues.
+Bug fixes must use the same workflow under explicit `bugfix` mode; they may not bypass roles as “small patches”.
 
 ## Mandatory Handoff Shape
 
@@ -59,6 +60,22 @@ Inside each handoff block, also require these metadata labels:
 - 需求标识：
 - 项目落点：
 - 下一角色标识：
+```
+
+For bugfix work, the handoff chain must also carry these bug-mode labels:
+
+```md
+- 问题类型：bugfix
+- 复现步骤：
+- 预期结果：
+- 实际结果：
+```
+
+Bugfix downstream stages must also carry:
+
+```md
+- 根因摘要：
+- 回归检查范围：
 ```
 
 Inside each handoff block, also require these quality labels:
@@ -125,6 +142,7 @@ The next role may not:
 - clarifies scope
 - splits work into implementable sub-functions
 - marks non-goals and ambiguities
+- in bugfix mode, defines symptom, repro, expected result, actual result, and impact
 
 ### architect
 
@@ -132,6 +150,7 @@ The next role may not:
 - identifies affected modules
 - maps input to output flow
 - defines structural invariants
+- in bugfix mode, narrows the repair landing zone and excludes unrelated modules
 
 ### code-investigator
 
@@ -139,6 +158,7 @@ The next role may not:
 - traces real call chains
 - cites relevant files
 - distinguishes fact from unknown
+- in bugfix mode, records reproduction evidence and root-cause-facing evidence
 
 ### solution-designer
 
@@ -146,6 +166,7 @@ The next role may not:
 - states root cause layer
 - proposes minimum viable change
 - defines impact range and fallback handling
+- in bugfix mode, records `根因摘要` explicitly
 
 ### implementer
 
@@ -153,6 +174,7 @@ The next role may not:
 - stays inside approved file scope
 - follows the design handoff
 - avoids unrelated refactors
+- in bugfix mode, fixes the validated root cause and records regression scope
 
 ### reviewer
 
@@ -160,6 +182,7 @@ The next role may not:
 - flags bugs and regressions
 - checks scope drift
 - records residual risk
+- in bugfix mode, checks whether the fix addresses root cause instead of only masking the symptom
 
 ### tester
 
@@ -167,12 +190,14 @@ The next role may not:
 - covers normal path
 - covers failure path
 - covers edge or boundary path
+- in bugfix mode, covers original repro, fix verification, and nearby regression scope
 
 ### knowledge-keeper
 
 - records symptom, root cause, fix
 - records validated lessons
 - marks remaining uncertainty
+- in bugfix mode, archives recurrence-prevention notes and regression learnings
 
 ## Stop Conditions
 
@@ -189,6 +214,7 @@ The pipeline must stop when:
 - required research for the current role has not been completed
 - external verification is required but has not been performed
 - an existing project lacks minimum usable documentation and backfill has not been completed
+- bugfix work lacks a recorded repro path, expected/actual result, root cause summary, or regression scope where required
 
 The pipeline should not stop merely to request confirmation when:
 
@@ -326,6 +352,7 @@ Use it to verify:
 - external evidence items declare both a concrete traceable URL and a verifiable local snapshot when external research is required
 - evidence mappings bind each verified fact identifier to a real evidence item plus a searchable keyword and excerpt
 - fact lines must be excerpt-only records, not mixed fact-plus-inference sentences
+- bugfix-mode handoffs include symptom, repro, expected/actual result, root cause summary, and regression scope when the validated stage requires them
 
 ## Enforcement Fallback Rule
 

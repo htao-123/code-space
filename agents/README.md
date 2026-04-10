@@ -21,6 +21,7 @@ For roles 2-8, do not produce formal output before completing required research.
 When the work could be invalidated by outdated external information, external research is mandatory.
 If an existing project lacks usable documentation, do not code first; create minimum viable documentation first.
 If documentation backfill is required, downstream roles may continue only after the backfill artifact exists.
+Bug fixes must use the same role pipeline under a required `bugfix` mode, not ad hoc patching.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 
@@ -84,8 +85,11 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 
 ```md
 - 当前角色：
+- 当前角色标识：
+- 当前交接标识：
 - 需求标识：
 - 项目落点：
+- 下一角色标识：
 ```
 
 - Each role may use only the original request, the latest valid handoff, and any repository facts explicitly allowed by that role.
@@ -125,6 +129,34 @@ Write evidence mappings as `FACT-001 -> EVID-IN-001::keyword::摘录`.
 ## Output Templates
 
 Each role has its own fill-in template in `references/output-template.md` under that skill directory.
+
+## Bugfix Mode
+
+Use the normal 8-role pipeline for bug fixes, but mark the handoff chain explicitly with:
+
+```md
+- 问题类型：bugfix
+- 复现步骤：
+- 预期结果：
+- 实际结果：
+```
+
+For bug-fix downstream stages, also require:
+
+```md
+- 根因摘要：
+- 回归检查范围：
+```
+
+Bugfix mode expectations:
+
+- `requirement-analyst` defines symptom, repro, expected vs actual behavior, and impact
+- `architect` and `code-investigator` keep the repair scope narrow and evidence-based
+- `solution-designer` must state the root cause summary
+- `implementer` must repair the validated root cause only
+- `reviewer` checks whether the change fixes root cause rather than masking the symptom
+- `tester` must cover original repro, fix validation, and nearby regression scope
+- `knowledge-keeper` archives symptom, root cause, fix, and recurrence prevention notes
 
 When an existing project lacks usable documentation, follow:
 

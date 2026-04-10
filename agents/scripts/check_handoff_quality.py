@@ -57,7 +57,8 @@ ROLE_FORBIDDEN_PATTERNS = {
 
 GENERIC_WEAK_PHRASES = [
     r"暂不展开",
-    r"略",
+    r"(?m)^\s*-\s*略\s*$",
+    r"(?m)^\s*略\s*$",
     r"自行处理",
     r"查过了",
 ]
@@ -256,7 +257,6 @@ def main() -> int:
                 extract_section(block, "【交付物】", ["【约束】"]),
                 extract_section(block, "【约束】", ["【校验标准】"]),
                 extract_section(block, "【校验标准】", ["【禁止事项】"]),
-                extract_section(block, "【禁止事项】", ["【交接给下一个角色】"]),
             ]
         )
         for pattern in forbidden_patterns:

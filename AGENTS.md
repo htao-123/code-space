@@ -20,6 +20,7 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - For roles 2-8, research is mandatory before formal output.
 - When a plan or implementation may be affected by current external technology, standards, APIs, platform rules, or library behavior, external research is mandatory and may require internet verification.
 - If an existing project lacks usable documentation, create the minimum necessary task and context documentation before continuing development.
+- Bug fixes must use the same workflow, but run in `bugfix` mode instead of free-form patching.
 
 ## Gate Check
 
@@ -42,6 +43,8 @@ Use this gate to verify:
 - existing-project work declares whether documentation was already usable or had to be backfilled
 - existing-project work points to the actual documentation artifact used for that declaration
 - existing-project documentation artifacts are stored inside the approved project path
+- bugfix work records bug mode metadata before implementation
+- bugfix work records reproduction, expected result, actual result, root cause summary, and regression scope in the required stages
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
 
@@ -58,6 +61,23 @@ Use stable identifiers for workflow and evidence relations:
 - `FACT-*`
 - `EVID-IN-*`
 - `EVID-EX-*`
+
+For bugfix work, also require these fields in the active handoff chain:
+
+- `问题类型：bugfix`
+- `复现步骤：`
+- `预期结果：`
+- `实际结果：`
+- `根因摘要：`
+- `回归检查范围：`
+
+Bugfix work must not skip:
+
+- symptom definition
+- reproduction path
+- root cause capture
+- regression scope definition
+- post-fix regression validation
 
 ## Gate Fallback
 

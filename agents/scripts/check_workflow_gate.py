@@ -44,6 +44,21 @@ REQUIRED_METADATA_LABELS = [
     "- 下一角色标识：",
 ]
 
+BUGFIX_REQUIRED_LABELS = [
+    "- 问题类型：",
+    "- 复现步骤：",
+    "- 预期结果：",
+    "- 实际结果：",
+]
+
+BUGFIX_STAGE_EXTRA_LABELS = {
+    "implementer": ["- 根因摘要：", "- 回归检查范围："],
+    "reviewer": ["- 根因摘要：", "- 回归检查范围："],
+    "tester": ["- 根因摘要：", "- 回归检查范围："],
+    "knowledge-keeper": ["- 根因摘要：", "- 回归检查范围："],
+    "complete": ["- 根因摘要：", "- 回归检查范围："],
+}
+
 STAGE_EXPECTATIONS = {
     "implementer": {
         "current_role_ids": ["solution-designer"],
@@ -126,6 +141,7 @@ def check_handoff_doc(
     approved_project_path: Path,
     expected_current_role_id: str | None = None,
     expected_next_role_id: str | None = None,
+    expected_work_type: str | None = None,
     block_override: str | None = None,
     block_label: str | None = None,
 ) -> dict[str, str] | None:
@@ -184,6 +200,7 @@ def check_handoff_doc(
     requirement_id = extract_label_value(block, "- 需求标识：")
     declared_project_path = extract_label_value(block, "- 项目落点：")
     next_role_id = extract_label_value(block, "- 下一角色标识：")
+    issue_type = extract_label_value(block, "- 问题类型：")
 
     if current_role_id is None:
         errors.append(
@@ -212,6 +229,37 @@ def check_handoff_doc(
         errors.append(
             f"Latest handoff block missing next role id metadata in {location_label}"
         )
+
+    if issue_type is None:
+        errors.append(
+            f"Latest handoff block missing work type metadata in {location_label}"
+        )
+    elif issue_type not in {"bugfix", "feature", "task"}:
+        errors.append(
+            f"Latest handoff block has unsupported issue type in {location_label}: {issue_type}"
+        )
+    if expected_work_type is not None and issue_type is not None and issue_type != expected_work_type:
+        errors.append(
+            "Latest handoff block work type does not match validated work type in "
+            f"{location_label}: expected {expected_work_type}, got {issue_type}"
+        )
+
+    is_bugfix = issue_type == "bugfix"
+    if is_bugfix:
+        missing_bugfix = [label for label in BUGFIX_REQUIRED_LABELS if label not in block]
+        if missing_bugfix:
+            errors.append(
+                "Bugfix handoff missing required bug labels in "
+                f"{location_label}: {', '.join(missing_bugfix)}"
+            )
+        if expected_next_role_id is not None:
+            extra_bugfix = BUGFIX_STAGE_EXTRA_LABELS.get(expected_next_role_id, [])
+            missing_extra = [label for label in extra_bugfix if label not in block]
+            if missing_extra:
+                errors.append(
+                    "Bugfix handoff missing required downstream bug labels in "
+                    f"{location_label}: {', '.join(missing_extra)}"
+                )
 
     if expected_current_role_id is not None and current_role_id is not None:
         if current_role_id != expected_current_role_id:
@@ -248,6 +296,7 @@ def check_handoff_doc(
         "requirement_id": requirement_id,
         "project_path": declared_project_path,
         "next_role_id": next_role_id,
+        "issue_type": issue_type or "",
     }
 
 
@@ -336,6 +385,12 @@ def main() -> int:
         choices=["new-project", "existing-project"],
         required=True,
         help="Whether this work creates a new project/subproject or modifies an existing one.",
+    )
+    parser.add_argument(
+        "--work-type",
+        choices=["feature", "bugfix", "task"],
+        default="feature",
+        help="Expected workflow work type. Use 'bugfix' to require bug-mode metadata.",
     )
     parser.add_argument(
         "--project-path",
@@ -482,6 +537,7 @@ def main() -> int:
                             project_path,
                             expected_current_role_id=expected_current_role_ids[index],
                             expected_next_role_id=expected_next_role_ids[index],
+                            expected_work_type=args.work_type,
                             block_override=block,
                             block_label=(
                                 f"{repo_relative(handoff_doc, repo_root)}#handoff-{len(blocks) - len(recent_blocks) + index + 1}"
@@ -518,6 +574,7 @@ def main() -> int:
                     project_path,
                     expected_current_role_id=expected_current_role_id,
                     expected_next_role_id=expected_next_role_id,
+                    expected_work_type=args.work_type,
                 )
                 if metadata is not None:
                     metadata_chain.append(metadata)
@@ -528,6 +585,7 @@ def main() -> int:
                 errors,
                 repo_root,
                 project_path,
+                expected_work_type=args.work_type,
             )
             if metadata is not None:
                 metadata_chain.append(metadata)
