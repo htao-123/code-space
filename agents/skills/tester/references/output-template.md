@@ -30,7 +30,8 @@
 - 不隐藏环境阻塞
 
 【交接给下一个角色】
-- Next role: knowledge-keeper
-- allowed inputs: 原始需求 + design handoff + review handoff + 本 handoff
-- non-goals: 虚构测试结果
+- 下一角色：知识归档员【负责沉淀问题记录、修复方式与可复用经验】
+- 可用输入：原始需求 + design handoff + review handoff + 本 handoff
+- 非目标：虚构测试结果
+- 完成条件：已验证事实和未验证项都被明确整理
 ```

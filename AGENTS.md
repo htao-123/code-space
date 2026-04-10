@@ -11,9 +11,12 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - Do not invent a parallel workflow.
 - Do not merge multiple roles into one step.
 - Do not skip required roles.
+- Every new requirement must complete the full workflow through the terminal role unless the user explicitly abandons the workflow.
 - Do not start implementation without a current task document or handoff.
 - Do not scatter a new project across repository root.
 - For existing projects, record the approved landing zone before implementation.
+- Do not stop for unnecessary confirmations when the next step is already determined by the workflow and existing handoffs.
+- Use Chinese when presenting workflow roles, role conclusions, and role-to-role progression to the user.
 
 ## Gate Check
 
@@ -44,3 +47,19 @@ Implementation may proceed only after either:
 
 - the automatic gate passes, or
 - the manual checklist is explicitly completed and recorded
+
+## Confirmation Policy
+
+Advance automatically when:
+
+- the next role is already determined by the workflow
+- the current handoff provides enough information
+- there is no material branch with non-obvious consequences
+
+Stop and ask only when:
+
+- a key product or technical choice is still ambiguous
+- multiple non-equivalent paths remain open
+- the choice affects scope, architecture, delivery, or user promises
+- the current handoff is missing required information
+- the current role cannot determine its output from existing facts and handoffs

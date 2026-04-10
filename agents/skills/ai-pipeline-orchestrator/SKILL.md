@@ -14,6 +14,9 @@ Use [pipeline-contract.md](./references/pipeline-contract.md) as the source of t
 This skill must override any tendency to "just do the work directly" or to invent a shortcut. When this workflow exists, you must obey it strictly.
 This also includes structure decisions: when creating a new project or substantial subproject, require a dedicated folder instead of scattering files at repository root.
 This also includes documentation discipline: before development begins, require a current task document or handoff record so progress does not depend on memory alone.
+This workflow should advance automatically whenever the next step is already determined. Do not interrupt merely to ask for permission to follow the established path.
+Every requirement must be carried through the full workflow until `knowledge-keeper`, unless the user explicitly chooses to abandon the workflow.
+When reporting workflow state to the user, use Chinese role names and Chinese descriptions.
 
 ## When To Use
 
@@ -38,6 +41,7 @@ The only valid order is:
 You may start later than step 1 only if a valid handoff for the prior step is already present in the conversation or task materials.
 
 You may not create an alternative route, compress multiple roles into one step, or silently substitute your own preferred process.
+You may not end a requirement halfway merely because an intermediate role completed.
 
 ## Routing Rules
 
@@ -109,7 +113,8 @@ Also reject internal shortcuts such as:
 3. Name the one and only next valid role.
 4. Pass forward only the allowed inputs from the previous handoff.
 5. Refuse any attempt to merge responsibilities, improvise a new process, or skip gates.
-6. Repeat until `knowledge-keeper` completes.
+6. Continue automatically until `knowledge-keeper` completes, unless a real ambiguity or missing decision blocks the next role.
+7. Ask the user for confirmation only when the current role cannot finish with existing facts, handoffs, and approved constraints.
 
 ## Output Contract
 
@@ -154,6 +159,7 @@ Under `【执行规则】`, include:
 - the next role may not absorb another role's responsibility
 - the next role must emit a full structured handoff
 - no one may replace this pipeline with an improvised workflow
+- do not stop for redundant confirmation when the next valid step is already clear
 
 Under `【停止条件】`, include:
 
@@ -171,6 +177,8 @@ Under `【停止条件】`, include:
 - inventing a parallel "lightweight" process without explicit approval
 - starting a new project in the repository root before deciding its dedicated folder
 - implementing from memory without first updating the current task document
+- pausing for unnecessary user confirmation when the workflow already determines the next action
+- stopping after a mid-pipeline role when the requirement has not yet reached `knowledge-keeper`
 
 ## Examples
 

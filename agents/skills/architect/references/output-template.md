@@ -33,7 +33,8 @@
 - 不超出需求范围变更行为
 
 【交接给下一个角色】
-- Next role: code-investigator
-- allowed inputs: 原始需求 + requirement handoff + 本 handoff
-- non-goals: 方案设计、编码实现
+- 下一角色：侦查员【负责收集代码事实、调用链与现有实现证据】
+- 可用输入：原始需求 + requirement handoff + 本 handoff
+- 非目标：方案设计、编码实现
+- 完成条件：下一角色已拿到明确的模块范围和结构约束
 ```

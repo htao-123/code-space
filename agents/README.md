@@ -11,9 +11,12 @@ Start with [ai-pipeline-orchestrator](./skills/ai-pipeline-orchestrator/SKILL.md
 Do not invent a parallel process, shortcut, or "better" workflow outside this system.
 Do not merge multiple roles into one execution step.
 Do not skip a role because it seems obvious.
+Every requirement must run the full workflow to completion.
 Do not continue when the immediately prior valid handoff is missing.
 Do not scatter a new project across the repository root; place it in a dedicated project folder first.
 Do not start development before writing the current task's handoff or planning document.
+Do not ask for confirmation when the workflow, handoffs, and repository facts already determine the next step.
+Use Chinese when reporting roles and workflow progress to the user.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 
@@ -77,6 +80,8 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - If there is any doubt, fall back to the orchestrator instead of continuing free-form.
 - New builds or substantial subprojects must live in a dedicated folder instead of the repository root.
 - Development is document-first: create or update the current task document before implementation so the workflow does not depend on memory.
+- Workflow execution should be automatic by default; pause only for real ambiguity, missing information, or meaningful branching decisions.
+- Only the current role's unresolved ambiguity may justify stopping for user confirmation.
 
 ## Useful References
 

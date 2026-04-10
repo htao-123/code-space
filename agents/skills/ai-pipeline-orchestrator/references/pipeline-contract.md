@@ -19,6 +19,9 @@ No agent may replace this workflow with a self-invented process.
 No agent may decide that the workflow is optional just because the task feels simple.
 No new project or substantial subproject may be scattered across repository root when it should live in a dedicated folder.
 No implementation may begin until the current task is documented in a handoff or task document.
+No agent should pause for redundant confirmation when the next workflow step is already determined by the current handoff state.
+Every requirement must run through the full workflow until `knowledge-keeper`, unless the user explicitly abandons the workflow.
+User-facing workflow communication should use Chinese role names and Chinese progression language.
 
 ## Mandatory Handoff Shape
 
@@ -34,6 +37,15 @@ Every role output must contain:
 ```
 
 If any heading is missing, the handoff is incomplete and the pipeline must stop.
+
+Inside `【交接给下一个角色】`, use Chinese labels:
+
+```md
+- 下一角色：角色中文名【该角色职责说明】
+- 可用输入：
+- 非目标：
+- 完成条件：
+```
 
 ## Allowed Transition Table
 
@@ -129,6 +141,13 @@ The pipeline must stop when:
 - a new project is being created but no dedicated folder has been defined yet
 - the current task has no up-to-date handoff or planning document
 
+The pipeline should not stop merely to request confirmation when:
+
+- the next role is already determined
+- the current handoff is sufficient
+- no material branching decision remains
+- the current role can finish from existing facts and approved constraints
+
 ## Recovery Rules
 
 If the pipeline is blocked:
@@ -165,6 +184,23 @@ For every active development task:
 3. if the plan, scope, or landing zone changes, update the document first
 
 The purpose is to ensure continuity across sessions and prevent the workflow from depending on agent memory.
+
+## Automatic Progression Rule
+
+Default to automatic progression.
+
+Advance to the next role without asking when:
+
+1. the workflow state clearly determines the next role
+2. the needed inputs already exist
+3. there is no significant unresolved branch
+
+Ask only when:
+
+1. the product or technical direction is still ambiguous
+2. multiple non-equivalent paths remain open
+3. a decision would change scope, structure, or external promises
+4. the current role cannot produce a valid output from the available facts and handoffs
 
 ## Enforcement Recommendation
 

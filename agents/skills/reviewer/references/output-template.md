@@ -31,7 +31,8 @@
 - 不做空泛通过结论
 
 【交接给下一个角色】
-- Next role: tester
-- allowed inputs: 原始需求 + solution handoff + changed code + 本 handoff
-- done when: 每个主要风险都有测试或阻塞说明
+- 下一角色：测试员【负责验证正常路径、异常路径与边界情况】
+- 可用输入：原始需求 + solution handoff + changed code + 本 handoff
+- 非目标：直接改代码
+- 完成条件：每个主要风险都有测试或阻塞说明
 ```

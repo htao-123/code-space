@@ -36,7 +36,9 @@
 - 不写代码
 
 【交接给下一个角色】
-- Next role: solution-designer
-- allowed inputs: 原始需求 + architect handoff + 本 handoff
-- allowed files/modules: 仅限已验证范围
+- 下一角色：方案设计师【负责基于已验证事实提出最小可行解决方案】
+- 可用输入：原始需求 + architect handoff + 本 handoff
+- 允许文件/模块：仅限已验证范围
+- 非目标：直接编码
+- 完成条件：下一角色已拿到完整的事实证据与范围约束
 ```

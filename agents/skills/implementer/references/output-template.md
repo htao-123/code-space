@@ -30,7 +30,8 @@
 - 不做顺手清理
 
 【交接给下一个角色】
-- Next role: reviewer
-- allowed inputs: 原始需求 + solution handoff + 改动代码 + 本 handoff
-- non-goals: 重写需求或架构
+- 下一角色：审核员【负责检查越界修改、逻辑风险与残余问题】
+- 可用输入：原始需求 + solution handoff + 改动代码 + 本 handoff
+- 非目标：重写需求或架构
+- 完成条件：下一角色已拿到改动结果与实现边界说明
 ```
