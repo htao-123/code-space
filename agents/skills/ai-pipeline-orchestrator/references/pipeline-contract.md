@@ -51,6 +51,14 @@ Inside `【交接给下一个角色】`, use Chinese labels:
 - 完成条件：
 ```
 
+Inside each handoff block, also require these metadata labels:
+
+```md
+- 当前角色：
+- 需求标识：
+- 项目落点：
+```
+
 ## Allowed Transition Table
 
 | Current role | Next role |
@@ -279,8 +287,13 @@ Use it to verify:
 - handoff documents contain mandatory sections
 - handoff documents contain the required Chinese sublabels
 - handoff documents record external research explicitly
+- handoff documents declare current role, requirement identifier, and project path explicitly
+- the latest handoff block routes to the expected next role for the validated stage
+- the latest handoff block declares the expected current role for the validated stage
 - implementation targets stay inside the approved project path
 - existing-project work declares documentation state and any required backfill artifact
+- existing-project work points to the actual documentation artifact used for that declaration
+- documentation artifacts declare the same approved project path
 
 ## Enforcement Fallback Rule
 
@@ -298,3 +311,7 @@ Implementation may begin only after one of these is true:
 
 - the automatic gate passes
 - the manual checklist has been completed and recorded in the task document
+
+Use stage-specific gate validation as the workflow advances, and use the completion gate before declaring a requirement finished.
+The completion gate should validate the closing handoff chain from implementer to reviewer to tester to knowledge-keeper to terminal.
+The completion gate should also verify that the closing chain shares the same requirement identifier and approved project path.

@@ -103,6 +103,14 @@ Treat a handoff as valid only if it contains all of these sections:
 
 If one or more sections are missing, do not advance. Ask for the missing handoff or regenerate the previous role output.
 
+Treat the latest handoff block as incomplete unless it also records:
+
+```md
+- 当前角色：
+- 需求标识：
+- 项目落点：
+```
+
 ### Skip Prevention
 
 Reject requests like:

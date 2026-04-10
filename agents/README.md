@@ -80,6 +80,14 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 【交接给下一个角色】
 ```
 
+- Every handoff block must also record these metadata labels:
+
+```md
+- 当前角色：
+- 需求标识：
+- 项目落点：
+```
+
 - Each role may use only the original request, the latest valid handoff, and any repository facts explicitly allowed by that role.
 - The orchestrator is the source of truth for deciding the next step.
 - No agent may replace this workflow with its own improvised process.
@@ -100,6 +108,9 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
 - [External Research Playbook](./references/external-research-playbook.md)
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
+
+The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
+The completion gate is expected to validate the closing chain from implementer through knowledge-keeper.
 
 ## Output Templates
 

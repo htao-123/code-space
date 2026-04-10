@@ -53,6 +53,11 @@ Write a current task document that at least records:
 - what is already known
 - what still needs confirmation
 
+The document should explicitly include:
+
+- `- 需求标识：...`
+- `- 项目落点：...`
+
 ### 3. Mark Unknowns Explicitly
 
 Do not hide uncertainty.

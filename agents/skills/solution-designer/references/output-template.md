@@ -5,6 +5,9 @@
 - 用一句话总结根因层级和最小修复方向。
 
 【已核实输入】
+- 当前角色：方案设计师
+- 需求标识：
+- 项目落点：
 - 原始需求：
 - architect handoff：
 - code-investigator handoff：
