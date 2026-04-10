@@ -17,6 +17,9 @@ This also includes documentation discipline: before development begins, require 
 This workflow should advance automatically whenever the next step is already determined. Do not interrupt merely to ask for permission to follow the established path.
 Every requirement must be carried through the full workflow until `knowledge-keeper`, unless the user explicitly chooses to abandon the workflow.
 When reporting workflow state to the user, use Chinese role names and Chinese descriptions.
+For roles 2-8, require research before formal output. This includes internal project research and, when needed, external research to avoid outdated solutions.
+If an existing project lacks usable documentation, route first through a minimum documentation backfill before normal downstream work continues.
+If documentation backfill is triggered, treat the backfill artifact as required input before any downstream role proceeds.
 
 ## When To Use
 
@@ -73,6 +76,15 @@ You may not end a requirement halfway merely because an intermediate role comple
 - Before implementation, confirm that the current task has a written handoff or task document that reflects the latest understanding.
 - If the task changes materially, update that document before continuing development.
 - Treat undocumented implementation as a process violation because it makes the workflow depend on memory.
+- If an existing project has no usable documentation, require a minimum documentation backfill before continuing.
+- Do not resume downstream work until the backfill artifact exists and matches current repository facts.
+
+### Research Check
+
+- For roles 2-8, confirm that the role has completed the research needed for its responsibility before formal output.
+- Internal project research is always required.
+- External research is required when outdated technical knowledge could materially affect correctness.
+- Do not allow a role to proceed from memory alone when current external facts may have changed.
 
 ### Handoff Validity Check
 
@@ -80,6 +92,8 @@ Treat a handoff as valid only if it contains all of these sections:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
@@ -152,6 +166,9 @@ Under `【缺失项】`, include:
 - conflicts between previous constraints and current request
 - missing dedicated project folder decision when the task creates a new project
 - missing current task document or stale handoff that no longer matches the work
+- missing required research for the current role
+- missing external verification where the solution may be time-sensitive
+- missing minimum documentation for an existing undocumented project
 
 Under `【执行规则】`, include:
 
@@ -160,6 +177,7 @@ Under `【执行规则】`, include:
 - the next role must emit a full structured handoff
 - no one may replace this pipeline with an improvised workflow
 - do not stop for redundant confirmation when the next valid step is already clear
+- when documentation backfill was required, the next role must treat that artifact as mandatory input
 
 Under `【停止条件】`, include:
 
@@ -179,6 +197,9 @@ Under `【停止条件】`, include:
 - implementing from memory without first updating the current task document
 - pausing for unnecessary user confirmation when the workflow already determines the next action
 - stopping after a mid-pipeline role when the requirement has not yet reached `knowledge-keeper`
+- skipping required research before a role outputs its result
+- relying on possibly outdated external knowledge without verification
+- continuing development in an existing project without first backfilling minimum documentation
 
 ## Examples
 

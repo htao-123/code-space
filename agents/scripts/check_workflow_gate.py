@@ -12,11 +12,26 @@ from pathlib import Path
 
 REQUIRED_HEADINGS = [
     "【角色结论】",
+    "【已核实输入】",
+    "【调研发现】",
     "【交付物】",
     "【约束】",
     "【校验标准】",
     "【禁止事项】",
     "【交接给下一个角色】",
+]
+
+REQUIRED_HANDOFF_SUBLABELS = [
+    "- 下一角色：",
+    "- 可用输入：",
+    "- 非目标：",
+    "- 完成条件：",
+]
+
+REQUIRED_RESEARCH_LABELS = [
+    "- 是否需要外部调研",
+    "- 外部调研来源",
+    "- 外部调研结论",
 ]
 
 
@@ -49,6 +64,20 @@ def check_handoff_doc(path: Path, errors: list[str], repo_root: Path) -> None:
         errors.append(
             "Handoff document missing required sections in "
             f"{repo_relative(path, repo_root)}: {', '.join(missing)}"
+        )
+
+    missing_sublabels = [label for label in REQUIRED_HANDOFF_SUBLABELS if label not in text]
+    if missing_sublabels:
+        errors.append(
+            "Handoff document missing required Chinese handoff labels in "
+            f"{repo_relative(path, repo_root)}: {', '.join(missing_sublabels)}"
+        )
+
+    missing_research = [label for label in REQUIRED_RESEARCH_LABELS if label not in text]
+    if missing_research:
+        errors.append(
+            "Handoff document missing required research records in "
+            f"{repo_relative(path, repo_root)}: {', '.join(missing_research)}"
         )
 
 
@@ -105,6 +134,18 @@ def main() -> int:
         help="Approved project folder or landing zone for the work.",
     )
     parser.add_argument(
+        "--documentation-status",
+        choices=["documented", "backfilled"],
+        help=(
+            "Documentation state for existing-project work. "
+            "Use 'documented' when usable docs already existed, or 'backfilled' when a new backfill artifact was created."
+        ),
+    )
+    parser.add_argument(
+        "--backfill-doc",
+        help="Backfill document path required when --documentation-status=backfilled.",
+    )
+    parser.add_argument(
         "--handoff-doc",
         action="append",
         default=[],
@@ -131,6 +172,9 @@ def main() -> int:
         (repo_root / doc).resolve() if not Path(doc).is_absolute() else Path(doc).resolve()
         for doc in args.handoff_doc
     ]
+    backfill_doc = None
+    if args.backfill_doc:
+        backfill_doc = (repo_root / args.backfill_doc).resolve() if not Path(args.backfill_doc).is_absolute() else Path(args.backfill_doc).resolve()
     target_paths = [
         (repo_root / target).resolve() if not Path(target).is_absolute() else Path(target).resolve()
         for target in args.target_path
@@ -156,8 +200,26 @@ def main() -> int:
             )
 
     if args.project_type == "existing-project":
+        if args.documentation_status is None:
+            errors.append(
+                "Existing project work requires --documentation-status so the workflow can verify documented vs backfilled state."
+            )
         if not project_path.exists():
             errors.append("Existing project landing zone must already exist.")
+        if args.documentation_status == "backfilled":
+            if backfill_doc is None:
+                errors.append(
+                    "Existing project with backfilled documentation requires --backfill-doc."
+                )
+            else:
+                check_file_exists(backfill_doc, "Backfill document", errors, repo_root)
+                ensure_within_repo(backfill_doc, repo_root, "Backfill document", errors)
+
+    if args.project_type == "new-project" and args.documentation_status is not None:
+        errors.append("New-project work must not pass --documentation-status.")
+
+    if args.backfill_doc and args.documentation_status != "backfilled":
+        errors.append("--backfill-doc may be used only when --documentation-status=backfilled.")
 
     for handoff_doc in handoff_docs:
         check_handoff_doc(handoff_doc, errors, repo_root)
@@ -186,6 +248,10 @@ def main() -> int:
     print(f"- task document: {repo_relative(task_doc, repo_root)}")
     print(f"- project type: {args.project_type}")
     print(f"- project path: {repo_relative(project_path, repo_root)}")
+    if args.documentation_status:
+        print(f"- documentation status: {args.documentation_status}")
+    if backfill_doc:
+        print(f"- backfill document: {repo_relative(backfill_doc, repo_root)}")
     if handoff_docs:
         print("- validated handoff docs:")
         for handoff_doc in handoff_docs:

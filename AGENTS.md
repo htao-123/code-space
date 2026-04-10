@@ -17,6 +17,9 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - For existing projects, record the approved landing zone before implementation.
 - Do not stop for unnecessary confirmations when the next step is already determined by the workflow and existing handoffs.
 - Use Chinese when presenting workflow roles, role conclusions, and role-to-role progression to the user.
+- For roles 2-8, research is mandatory before formal output.
+- When a plan or implementation may be affected by current external technology, standards, APIs, platform rules, or library behavior, external research is mandatory and may require internet verification.
+- If an existing project lacks usable documentation, create the minimum necessary task and context documentation before continuing development.
 
 ## Gate Check
 
@@ -31,7 +34,10 @@ Use this gate to verify:
 - the current task document exists
 - the project path or landing zone is defined
 - required handoff documents contain the mandatory sections
+- required Chinese handoff sublabels exist
+- required research records exist
 - new-project work is not being placed at repository root unless explicitly allowed
+- existing-project work declares whether documentation was already usable or had to be backfilled
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
 
@@ -63,3 +69,49 @@ Stop and ask only when:
 - the choice affects scope, architecture, delivery, or user promises
 - the current handoff is missing required information
 - the current role cannot determine its output from existing facts and handoffs
+
+## Research Policy
+
+For roles 2-8:
+
+1. perform internal research first
+2. perform external research when time-sensitive or potentially outdated facts could affect the result
+3. do not proceed from memory alone when there is meaningful risk of outdated information
+
+Internal research includes:
+
+- current task document
+- prior handoffs
+- repository structure
+- existing implementation facts
+
+External research includes:
+
+- official docs
+- current platform or browser behavior
+- library or framework changes
+- deployment, SEO, distribution, or compatibility rules
+
+If external research is required, it is not optional.
+
+## Existing Project Without Documentation
+
+If an existing project has no usable documentation:
+
+1. do not proceed directly into implementation
+2. create the minimum viable documentation first
+3. base that documentation on repository facts, not guesses
+4. treat that backfill document as required workflow input before downstream roles continue
+
+Minimum viable documentation should cover:
+
+- current task scope
+- approved landing zone
+- relevant modules or files
+- known facts
+- unknowns and risks
+
+Use these references when needed:
+
+- [`agents/references/documentation-backfill-playbook.md`](./agents/references/documentation-backfill-playbook.md)
+- [`agents/references/external-research-playbook.md`](./agents/references/external-research-playbook.md)

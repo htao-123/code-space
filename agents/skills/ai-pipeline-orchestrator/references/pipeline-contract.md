@@ -22,6 +22,8 @@ No implementation may begin until the current task is documented in a handoff or
 No agent should pause for redundant confirmation when the next workflow step is already determined by the current handoff state.
 Every requirement must run through the full workflow until `knowledge-keeper`, unless the user explicitly abandons the workflow.
 User-facing workflow communication should use Chinese role names and Chinese progression language.
+For roles 2-8, research is mandatory before formal output.
+If an existing project lacks usable documentation, minimum documentation backfill is mandatory before normal development continues.
 
 ## Mandatory Handoff Shape
 
@@ -29,6 +31,8 @@ Every role output must contain:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
@@ -77,6 +81,9 @@ The next role may not:
 - combine two role responsibilities "for convenience"
 - begin implementing a new project before its folder placement is defined
 - rely on unstated memory when the current task document has not been created or updated
+- skip required internal research
+- skip required external verification when current facts may have changed
+- continue coding in an existing undocumented project before minimum documentation has been backfilled
 
 ## Minimum Checks By Role
 
@@ -88,36 +95,42 @@ The next role may not:
 
 ### architect
 
+- verifies current project structure before deciding the landing zone
 - identifies affected modules
 - maps input to output flow
 - defines structural invariants
 
 ### code-investigator
 
+- researches internal code facts before drawing conclusions
 - traces real call chains
 - cites relevant files
 - distinguishes fact from unknown
 
 ### solution-designer
 
+- verifies whether the proposed solution depends on current external facts
 - states root cause layer
 - proposes minimum viable change
 - defines impact range and fallback handling
 
 ### implementer
 
+- verifies current implementation references and APIs before coding
 - stays inside approved file scope
 - follows the design handoff
 - avoids unrelated refactors
 
 ### reviewer
 
+- verifies review assumptions against current code and relevant current external standards when needed
 - flags bugs and regressions
 - checks scope drift
 - records residual risk
 
 ### tester
 
+- verifies test approach against the approved scope and any relevant current platform behavior
 - covers normal path
 - covers failure path
 - covers edge or boundary path
@@ -140,6 +153,9 @@ The pipeline must stop when:
 - any agent attempts to improvise an alternative process outside this contract
 - a new project is being created but no dedicated folder has been defined yet
 - the current task has no up-to-date handoff or planning document
+- required research for the current role has not been completed
+- external verification is required but has not been performed
+- an existing project lacks minimum usable documentation and backfill has not been completed
 
 The pipeline should not stop merely to request confirmation when:
 
@@ -185,6 +201,52 @@ For every active development task:
 
 The purpose is to ensure continuity across sessions and prevent the workflow from depending on agent memory.
 
+## Existing Project Documentation Backfill Rule
+
+For an existing project with no usable documentation:
+
+1. stop normal downstream development
+2. create minimum viable documentation from repository facts
+3. record known facts, landing zone, scope, unknowns, and risks
+4. treat that backfill document as a required workflow artifact
+5. then continue the normal workflow
+
+Do not use missing documentation as an excuse to rely on memory or guess intent.
+
+Follow the backfill process in:
+
+- `agents/references/documentation-backfill-playbook.md`
+
+This backfill may be created during `requirement-analyst` or `architect`, but downstream roles may not proceed until it exists.
+
+## Research-First Rule
+
+For roles 2-8:
+
+1. complete internal project research before formal output
+2. complete external research when current outside facts could affect correctness
+3. record the verified inputs and research findings in the role output
+
+Internal research includes:
+
+- current task document
+- prior handoffs
+- repository files
+- existing implementation behavior
+
+External research is mandatory when the work depends on:
+
+- third-party libraries or frameworks that may have changed
+- browser or platform behavior
+- SEO, deployment, distribution, or compatibility rules
+- APIs, standards, or toolchain behavior that may be outdated
+
+Do not rely on memory alone when there is meaningful risk of outdated information.
+
+Follow the external research process in:
+
+- `agents/references/external-research-playbook.md`
+
 ## Automatic Progression Rule
 
 Default to automatic progression.
@@ -215,7 +277,10 @@ Use it to verify:
 - current task document exists
 - project path or landing zone is defined
 - handoff documents contain mandatory sections
+- handoff documents contain the required Chinese sublabels
+- handoff documents record external research explicitly
 - implementation targets stay inside the approved project path
+- existing-project work declares documentation state and any required backfill artifact
 
 ## Enforcement Fallback Rule
 

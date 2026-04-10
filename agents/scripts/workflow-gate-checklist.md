@@ -24,18 +24,31 @@ Mark each item before implementation begins.
 
 - [ ] The latest required handoff exists
 - [ ] It contains all required sections:
+  - `【已核实输入】`
+  - `【调研发现】`
   - `【角色结论】`
   - `【交付物】`
   - `【约束】`
   - `【校验标准】`
   - `【禁止事项】`
   - `【交接给下一个角色】`
+- [ ] It contains the required Chinese handoff labels:
+  - `- 下一角色：`
+  - `- 可用输入：`
+  - `- 非目标：`
+  - `- 完成条件：`
+- [ ] It records external research explicitly:
+  - `- 是否需要外部调研`
+  - `- 外部调研来源`
+  - `- 外部调研结论`
 
 ### 3. Project Placement
 
 - [ ] The approved project folder or landing zone is explicit
 - [ ] New-project work is not scattered at repository root
 - [ ] Existing-project work has an approved existing path or approved subfolder
+- [ ] For existing-project work, documentation state is explicit: `documented` or `backfilled`
+- [ ] If the existing project required backfill, the backfill document exists and is recorded as a workflow artifact
 
 ### 4. Implementation Scope
 

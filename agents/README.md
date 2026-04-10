@@ -17,6 +17,10 @@ Do not scatter a new project across the repository root; place it in a dedicated
 Do not start development before writing the current task's handoff or planning document.
 Do not ask for confirmation when the workflow, handoffs, and repository facts already determine the next step.
 Use Chinese when reporting roles and workflow progress to the user.
+For roles 2-8, do not produce formal output before completing required research.
+When the work could be invalidated by outdated external information, external research is mandatory.
+If an existing project lacks usable documentation, do not code first; create minimum viable documentation first.
+If documentation backfill is required, downstream roles may continue only after the backfill artifact exists.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 
@@ -67,6 +71,8 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
@@ -82,6 +88,9 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - Development is document-first: create or update the current task document before implementation so the workflow does not depend on memory.
 - Workflow execution should be automatic by default; pause only for real ambiguity, missing information, or meaningful branching decisions.
 - Only the current role's unresolved ambiguity may justify stopping for user confirmation.
+- Research is two-layered: internal project research first, external time-sensitive research when needed.
+- Existing undocumented projects must go through a documentation backfill step before normal development continues.
+- When documentation backfill is required, the backfill artifact becomes a required input for later roles.
 
 ## Useful References
 
@@ -89,7 +98,17 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - [Pipeline Demo](./skills/ai-pipeline-orchestrator/references/pipeline-demo.md)
 - [Workflow Gate Checker](./scripts/check_workflow_gate.py)
 - [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
+- [External Research Playbook](./references/external-research-playbook.md)
+- [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
 ## Output Templates
 
 Each role has its own fill-in template in `references/output-template.md` under that skill directory.
+
+When an existing project lacks usable documentation, follow:
+
+- [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
+
+When current external facts may affect correctness, follow:
+
+- [External Research Playbook](./references/external-research-playbook.md)
