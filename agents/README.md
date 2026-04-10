@@ -103,6 +103,7 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - Research is two-layered: internal project research first, external time-sensitive research when needed.
 - Existing undocumented projects must go through a documentation backfill step before normal development continues.
 - When documentation backfill is required, the backfill artifact becomes a required input for later roles.
+- If the default new-project container folder (for example `projects/`) does not exist yet, create it during normal setup rather than blocking the workflow.
 
 ## Useful References
 

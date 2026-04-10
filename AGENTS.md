@@ -21,6 +21,7 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - When a plan or implementation may be affected by current external technology, standards, APIs, platform rules, or library behavior, external research is mandatory and may require internet verification.
 - If an existing project lacks usable documentation, create the minimum necessary task and context documentation before continuing development.
 - Bug fixes must use the same workflow, but run in `bugfix` mode instead of free-form patching.
+- If the default project container folder does not exist yet, create it as part of normal new-project setup instead of treating that as a blocker.
 
 ## Gate Check
 

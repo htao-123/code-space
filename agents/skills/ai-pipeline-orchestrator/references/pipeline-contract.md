@@ -244,6 +244,8 @@ For any new website, app, tool, or standalone deliverable:
 
 Root-level placement is allowed only when the user explicitly requests it and the handoff records that exception.
 
+If the default container directory for new projects does not exist yet, create it during normal setup. Its absence is not a valid reason to block the workflow once the landing zone is approved.
+
 For work inside an existing project:
 
 1. identify whether the change belongs to an existing module or a new subproject folder
