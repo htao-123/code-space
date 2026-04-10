@@ -59,6 +59,14 @@ BUGFIX_STAGE_EXTRA_LABELS = {
     "complete": ["- 根因摘要：", "- 回归检查范围："],
 }
 
+ROLE_SPECIFIC_REQUIRED_LABELS = {
+    "tester": [
+        "- 运行时验证：",
+        "- 外部依赖验证：",
+        "- 未验证原因：",
+    ],
+}
+
 STAGE_EXPECTATIONS = {
     "implementer": {
         "current_role_ids": ["solution-designer"],
@@ -273,6 +281,15 @@ def check_handoff_doc(
             errors.append(
                 "Latest handoff block routes to the wrong next role id in "
                 f"{location_label}: expected {expected_next_role_id}, got {next_role_id}"
+            )
+
+    if current_role_id is not None:
+        required_role_specific = ROLE_SPECIFIC_REQUIRED_LABELS.get(current_role_id, [])
+        missing_role_specific = [label for label in required_role_specific if label not in block]
+        if missing_role_specific:
+            errors.append(
+                "Latest handoff block missing role-specific required labels in "
+                f"{location_label}: {', '.join(missing_role_specific)}"
             )
 
     if handoff_id is not None and requirement_id is not None and requirement_id not in handoff_id:

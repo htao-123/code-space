@@ -46,6 +46,8 @@ Use this gate to verify:
 - existing-project documentation artifacts are stored inside the approved project path
 - bugfix work records bug mode metadata before implementation
 - bugfix work records reproduction, expected result, actual result, root cause summary, and regression scope in the required stages
+- tester handoffs record runtime verification, external-dependency verification, and unverified reasons when applicable
+- static checks must not replace real success-path validation for features that depend on external APIs, browser runtime behavior, or network requests
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
 

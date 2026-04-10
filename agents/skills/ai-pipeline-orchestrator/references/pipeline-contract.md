@@ -190,6 +190,11 @@ The next role may not:
 - covers normal path
 - covers failure path
 - covers edge or boundary path
+- records `运行时验证`
+- records `外部依赖验证`
+- records `未验证原因`
+- when the feature depends on external APIs, browser runtime behavior, or network requests, validates the real success path or explicitly records why that validation could not be completed
+- if the external success path is marked verified, binds that claim to a concrete passing test case
 - in bugfix mode, covers original repro, fix verification, and nearby regression scope
 
 ### knowledge-keeper

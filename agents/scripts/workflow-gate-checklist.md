@@ -67,6 +67,12 @@ Mark each item before implementation begins.
 - [ ] `事实清单` uses `FACT-* -> 证据摘录：摘录内容` format
 - [ ] `证据映射` binds each fact ID to `EVID-*::关键词::摘录`
 - [ ] 非 `complete` 阶段的 gate 一次只校验一个 `--handoff-doc`
+- [ ] 如果当前被校验 block 的 `当前角色标识` 是 `tester`，则必须记录：
+  - `- 运行时验证：`
+  - `- 外部依赖验证：`
+  - `- 未验证原因：`
+- [ ] 如果功能依赖外部 API、浏览器运行时或网络请求，测试结论不能只基于静态检查；必须完成真实成功路径验证，或明确记录未验证原因
+- [ ] 如果外部成功路径被标记为“已真实验证”，则 `外部依赖验证` 必须绑定到一个具体 `用例 N`，且该用例在 `【测试结果】` 中为 `pass`
 
 ### 3. Project Placement
 

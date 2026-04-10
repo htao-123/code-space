@@ -137,6 +137,62 @@ def extract_section(text: str, start_heading: str, end_headings: list[str]) -> s
     return text[start:end]
 
 
+def extract_top_level_bullet_block(text: str, label: str) -> str:
+    pattern = re.compile(
+        rf"(?ms)^{re.escape(label)}\s*$\n(?P<body>(?:^(?:  |\t).*(?:\n|$))*)"
+    )
+    match = pattern.search(text)
+    if match is None:
+        return ""
+    return match.group("body").strip()
+
+
+def has_meaningful_content(text: str) -> bool:
+    if text.strip() == "":
+        return False
+    normalized = text.strip()
+    return normalized not in {"无", "未填写", "待补充", "待确认", "N/A", "n/a"}
+
+
+def infer_external_dependency(
+    block: str,
+    fact_text_by_id: dict[str, str],
+    internal_evidence_items: dict[str, str],
+    external_evidence_items: dict[str, tuple[str, str]],
+    repo_root: Path,
+) -> bool:
+    dependency_patterns = [
+        r"https?://",
+        r"\bfetch\(",
+        r"\bAPI_BASE\b",
+        r"外部 API",
+        r"网络请求",
+        r"浏览器运行时",
+        r"/latest",
+        r"/currencies",
+    ]
+    searchable_parts = [block, *fact_text_by_id.values()]
+    for evidence_path in internal_evidence_items.values():
+        candidate = (repo_root / evidence_path).resolve() if not Path(evidence_path).is_absolute() else Path(evidence_path).resolve()
+        if candidate.exists() and candidate.is_file():
+            searchable_parts.append(read_text(candidate))
+    for snapshot_path, source_url in external_evidence_items.values():
+        candidate = (repo_root / snapshot_path).resolve() if not Path(snapshot_path).is_absolute() else Path(snapshot_path).resolve()
+        searchable_parts.append(source_url)
+        if candidate.exists() and candidate.is_file():
+            searchable_parts.append(read_text(candidate))
+    searchable = "\n".join(searchable_parts)
+    return any(re.search(pattern, searchable, re.IGNORECASE) for pattern in dependency_patterns)
+
+
+def has_passing_test_case(test_results_section: str, case_ref: str) -> bool:
+    match = re.search(r"用例\s*(\d+)", case_ref)
+    if match is None:
+        return False
+    case_number = match.group(1)
+    return re.search(rf"用例\s*{re.escape(case_number)}\s*:\s*pass\b", test_results_section, re.IGNORECASE) is not None
+
+
 def parse_mapping_items(items_raw: list[str]) -> tuple[list[tuple[str, str, str, str]], list[str]]:
     items: list[tuple[str, str, str, str]] = []
     invalid: list[str] = []
@@ -433,6 +489,78 @@ def main() -> int:
         errors.append("Inference section must be present even if it says '无'.")
     if unknowns is None:
         errors.append("Unverified items section must be present even if it says '无'.")
+
+    if role_id == "tester":
+        runtime_verification = extract_top_level_bullet_block(block, "- 运行时验证：")
+        external_dependency_verification = extract_top_level_bullet_block(block, "- 外部依赖验证：")
+        unverified_reason = extract_top_level_bullet_block(block, "- 未验证原因：")
+        test_results_section = extract_section(block, "【交付物】", ["【约束】"])
+        declared_external_dependency = extract_label_value(
+            external_dependency_verification,
+            "- 是否涉及外部 API / 浏览器运行时 / 网络请求:",
+        )
+        success_path_status = extract_label_value(
+            external_dependency_verification,
+            "- 成功路径是否已真实验证:",
+        )
+        success_path_evidence = extract_label_value(
+            external_dependency_verification,
+            "- 成功路径证据:",
+        )
+
+        if not has_meaningful_content(runtime_verification):
+            errors.append("Tester handoff must provide substantive runtime verification details.")
+        if not has_meaningful_content(external_dependency_verification):
+            errors.append("Tester handoff must provide substantive external-dependency verification details.")
+        if unverified_reason.strip() == "":
+            errors.append("Tester handoff must provide an explicit unverified-reason field value.")
+
+        external_dependency_involved = infer_external_dependency(
+            block,
+            fact_text_by_id,
+            internal_evidence_items,
+            external_evidence_items,
+            repo_root,
+        ) or external_required in {"是", "需要", "yes", "true", "True"}
+        if external_dependency_involved and (
+            declared_external_dependency is None
+            or re.search(r"(不涉及|无外部依赖|否)", declared_external_dependency)
+        ):
+            errors.append(
+                "Tester handoff marks external dependency as not involved, but the validated evidence indicates external APIs, browser runtime, or network requests are involved."
+            )
+
+        success_path_verified = bool(success_path_status and re.search(r"(已真实验证|已验证|pass|通过|是)", success_path_status))
+        success_path_not_verified = bool(success_path_status and re.search(r"(未验证|blocked|阻塞|无法验证|未实际验证|否)", success_path_status))
+        runtime_not_run = re.search(r"(未实际运行|未运行|blocked|阻塞|无法运行)", runtime_verification)
+
+        if (success_path_not_verified or runtime_not_run) and unverified_reason.strip() in {"", "无"}:
+            errors.append(
+                "Tester handoff cannot mark runtime or external success-path verification incomplete while leaving unverified reason empty or '无'."
+            )
+
+        if (
+            not success_path_not_verified
+            and not runtime_not_run
+            and unverified_reason.strip() not in {"", "无"}
+            and has_meaningful_content(unverified_reason)
+        ):
+            errors.append(
+                "Tester handoff should not record a non-empty unverified reason after claiming runtime and external success-path verification are complete."
+            )
+
+        if external_dependency_involved and success_path_status is None:
+            errors.append("Tester handoff must explicitly declare whether the external success path was truly verified.")
+
+        if success_path_verified:
+            if success_path_evidence is None or not re.search(r"用例\s*\d+", success_path_evidence):
+                errors.append(
+                    "Tester handoff must bind external success-path verification to a concrete passing test case, e.g. '用例 1'."
+                )
+            elif not has_passing_test_case(test_results_section, success_path_evidence):
+                errors.append(
+                    "Tester handoff claims the external success path was truly verified, but the referenced test case is missing or not marked pass in the test-results section."
+                )
 
     for phrase in GENERIC_WEAK_PHRASES:
         if re.search(phrase, block):

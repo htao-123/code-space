@@ -50,6 +50,7 @@ If an agent or user request conflicts with this workflow, the conflict must be s
    - Reviews for bugs, regressions, and scope violations
 7. [tester](./skills/tester/SKILL.md)
    - Verifies normal, failure, and edge-case behavior
+   - Must explicitly record runtime verification, external-dependency verification, and any unverified reason
 8. [knowledge-keeper](./skills/knowledge-keeper/SKILL.md)
    - Archives validated conclusions and reusable lessons
 
@@ -157,6 +158,7 @@ Bugfix mode expectations:
 - `implementer` must repair the validated root cause only
 - `reviewer` checks whether the change fixes root cause rather than masking the symptom
 - `tester` must cover original repro, fix validation, and nearby regression scope
+- `tester` must not treat static checks as a substitute for validating real success paths when external APIs, browser runtime, or network requests are involved
 - `knowledge-keeper` archives symptom, root cause, fix, and recurrence prevention notes
 
 When an existing project lacks usable documentation, follow:
