@@ -1,0 +1,3 @@
+interface:
+  display_name: "Solution Designer"
+  short_description: "Design the minimum viable change from validated facts"

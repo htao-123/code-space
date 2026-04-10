@@ -1,0 +1,3 @@
+interface:
+  display_name: "Code Investigator"
+  short_description: "Inspect code facts, call chains, and existing patterns"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "AI Pipeline Orchestrator"
+  short_description: "Route work through the 8-role pipeline without skipping steps"

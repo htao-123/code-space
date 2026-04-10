@@ -1,0 +1,3 @@
+interface:
+  display_name: "Tester"
+  short_description: "Validate behavior with normal, failure, and edge-case tests"

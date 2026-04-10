@@ -1,0 +1,36 @@
+# Tester Output Template
+
+```md
+【角色结论】
+- 用一句话总结修复是否被验证，以及是否还有阻塞项。
+
+【交付物】
+- 【测试用例】
+  - 正常路径:
+  - 异常路径:
+  - 边界情况:
+- 【测试结果】
+  - 用例 1: pass / fail / blocked
+  - 证据:
+  - 用例 2: pass / fail / blocked
+  - 证据:
+
+【约束】
+- 仅归档已验证结论
+- 未验证或被阻塞风险必须带到下一步
+
+【校验标准】
+- 关键路径已覆盖
+- 失败路径已覆盖
+- 原问题已复现或已明确不可复现
+
+【禁止事项】
+- 不假设成功
+- 不省略失败用例
+- 不隐藏环境阻塞
+
+【交接给下一个角色】
+- Next role: knowledge-keeper
+- allowed inputs: 原始需求 + design handoff + review handoff + 本 handoff
+- non-goals: 虚构测试结果
+```

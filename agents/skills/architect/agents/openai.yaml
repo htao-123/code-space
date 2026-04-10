@@ -1,0 +1,3 @@
+interface:
+  display_name: "Architect"
+  short_description: "Map the request to modules, flow, and structural constraints"
