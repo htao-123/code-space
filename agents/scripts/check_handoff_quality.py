@@ -101,7 +101,7 @@ def extract_all_handoff_blocks(text: str) -> list[str]:
 
 
 def extract_label_value(text: str, label: str) -> str | None:
-    pattern = rf"(?m)^{re.escape(label)}\s*(.+?)\s*$"
+    pattern = rf"(?m)^\s*{re.escape(label)}\s*(.+?)\s*$"
     match = re.search(pattern, text)
     if match is None:
         return None
@@ -139,7 +139,7 @@ def extract_section(text: str, start_heading: str, end_headings: list[str]) -> s
 
 def extract_top_level_bullet_block(text: str, label: str) -> str:
     pattern = re.compile(
-        rf"(?ms)^{re.escape(label)}\s*$\n(?P<body>(?:^(?:  |\t).*(?:\n|$))*)"
+        rf"(?m)^{re.escape(label)}\s*$\n(?P<body>(?:^(?:  |\t).*(?:\n|$))*)"
     )
     match = pattern.search(text)
     if match is None:
