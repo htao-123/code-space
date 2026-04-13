@@ -245,6 +245,7 @@ If the pipeline is blocked:
 
 Do not repair the gap inside the orchestrator.
 Do not solve the blockage by inventing a new workflow.
+If the blockage is only handoff formatting shape, normalize the handoff document first before treating the requirement itself as blocked.
 
 ## Project Placement Rule
 
@@ -291,6 +292,14 @@ Follow the backfill process in:
 - `agents/references/documentation-backfill-playbook.md`
 
 This backfill may be created during `requirement-analyst` or `architect`, but downstream roles may not proceed until it exists.
+
+## Handoff Normalization
+
+When the gate is blocked only by handoff formatting shape rather than missing business content:
+
+1. run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write`
+2. re-run the workflow gate
+3. only treat the requirement as blocked if normalization does not resolve the issue
 
 ## Research-First Rule
 

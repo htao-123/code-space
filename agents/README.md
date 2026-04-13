@@ -114,6 +114,7 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - [Pipeline Demo](./skills/ai-pipeline-orchestrator/references/pipeline-demo.md)
 - [Workflow Gate Checker](./scripts/check_workflow_gate.py)
 - [Handoff Quality Checker](./scripts/check_handoff_quality.py)
+- [Handoff Format Normalizer](./scripts/normalize_handoff_format.py)
 - [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
 - [External Research Playbook](./references/external-research-playbook.md)
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
@@ -122,6 +123,7 @@ The gate checker supports stage-specific validation and a final completion gate.
 The completion gate is expected to validate the closing chain from implementer through knowledge-keeper.
 The workflow gate also runs the handoff quality checker by default.
 The quality checker is mandatory during normal workflow execution.
+If the gate is blocked only by handoff formatting shape, run the handoff format normalizer before treating the requirement as blocked.
 Relationship validation now prefers stable IDs over free-text matching.
 Use `当前角色标识 / 下一角色标识 / 当前交接标识` for workflow routing.
 Treat `当前角色` as display-only text, not a gate source of truth.

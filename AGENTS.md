@@ -58,6 +58,7 @@ Use later stages as the workflow advances, and use the completion gate before tr
 The completion gate should validate the closing chain from implementer through knowledge-keeper, not only the final archive block.
 The workflow gate should also run the handoff quality checker by default.
 The quality checker may not be disabled in normal workflow execution.
+If the gate is blocked only by handoff formatting shape, run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write` before deciding the requirement itself is blocked.
 Use stable identifiers for workflow and evidence relations:
 
 - `当前角色标识`

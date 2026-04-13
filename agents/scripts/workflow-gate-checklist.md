@@ -9,6 +9,7 @@ Use this checklist only when the automatic gate script cannot run because of loc
 - the runtime is missing and cannot be repaired quickly
 
 Do not use this checklist just for convenience. Prefer the automatic gate whenever possible.
+If the automatic gate is failing only because of handoff formatting shape, normalize the handoff document first with `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write` before falling back to this checklist.
 
 ## Manual Checks
 
