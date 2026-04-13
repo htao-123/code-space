@@ -22,6 +22,7 @@ When the work could be invalidated by outdated external information, external re
 If an existing project lacks usable documentation, do not code first; create minimum viable documentation first.
 If documentation backfill is required, downstream roles may continue only after the backfill artifact exists.
 Bug fixes must use the same role pipeline under a required `bugfix` mode, not ad hoc patching.
+When historical data and the new version's data structure diverge, do not keep the system alive through default compatibility branches; prefer an explicit migration script that upgrades historical data into the new structure.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 
@@ -105,6 +106,7 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - Existing undocumented projects must go through a documentation backfill step before normal development continues.
 - When documentation backfill is required, the backfill artifact becomes a required input for later roles.
 - If the default new-project container folder (for example `projects/`) does not exist yet, create it during normal setup rather than blocking the workflow.
+- Historical-data/schema mismatch should default to migration scripts rather than long-lived compatibility handling inside runtime logic.
 
 ## Useful References
 

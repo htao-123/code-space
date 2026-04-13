@@ -22,6 +22,7 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - If an existing project lacks usable documentation, create the minimum necessary task and context documentation before continuing development.
 - Bug fixes must use the same workflow, but run in `bugfix` mode instead of free-form patching.
 - If the default project container folder does not exist yet, create it as part of normal new-project setup instead of treating that as a blocker.
+- When historical data and the new version's data structure diverge, do not add long-lived compatibility handling by default; prefer a migration script that upgrades historical data into the new structure.
 
 ## Gate Check
 
@@ -48,6 +49,7 @@ Use this gate to verify:
 - bugfix work records reproduction, expected result, actual result, root cause summary, and regression scope in the required stages
 - tester handoffs record runtime verification, external-dependency verification, and unverified reasons when applicable
 - static checks must not replace real success-path validation for features that depend on external APIs, browser runtime behavior, or network requests
+- historical-data/schema mismatch work records whether a migration script is required and must not silently fall back to permanent compatibility branches by default
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
 

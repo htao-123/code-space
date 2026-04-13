@@ -193,6 +193,19 @@ def has_passing_test_case(test_results_section: str, case_ref: str) -> bool:
     return re.search(rf"用例\s*{re.escape(case_number)}\s*:\s*pass\b", test_results_section, re.IGNORECASE) is not None
 
 
+def indicates_schema_mismatch(value: str | None) -> bool:
+    if value is None:
+        return False
+    return bool(re.search(r"(不一致|需要迁移|mismatch|diverge)", value, re.IGNORECASE))
+
+
+def is_empty_or_not_applicable(value: str | None) -> bool:
+    if value is None:
+        return True
+    normalized = value.strip()
+    return normalized in {"", "无", "不涉及", "无需", "未填写", "待补充", "待确认"}
+
+
 def parse_mapping_items(items_raw: list[str]) -> tuple[list[tuple[str, str, str, str]], list[str]]:
     items: list[tuple[str, str, str, str]] = []
     invalid: list[str] = []
@@ -489,6 +502,73 @@ def main() -> int:
         errors.append("Inference section must be present even if it says '无'.")
     if unknowns is None:
         errors.append("Unverified items section must be present even if it says '无'.")
+
+    if role_id == "architect":
+        schema_status = extract_label_value(block, "- 历史数据结构状态：")
+        migration_requirement = extract_label_value(block, "- 迁移脚本要求：")
+        if is_empty_or_not_applicable(schema_status):
+            errors.append("Architect handoff must explicitly record schema/history-data status.")
+        if is_empty_or_not_applicable(migration_requirement):
+            errors.append("Architect handoff must explicitly record whether a migration script is required.")
+        if indicates_schema_mismatch(schema_status):
+            if migration_requirement is None or not re.search(r"(需要|必须|迁移脚本)", migration_requirement):
+                errors.append(
+                    "Architect handoff identifies schema mismatch but does not require a migration script."
+                )
+            if migration_requirement and re.search(r"(兼容分支|长期兼容|运行时兼容)", migration_requirement) and not re.search(r"(不采用|不默认|禁止)", migration_requirement):
+                errors.append(
+                    "Architect handoff must not treat long-lived compatibility handling as the default response to schema mismatch."
+                )
+
+    if role_id == "code-investigator":
+        schema_status = extract_label_value(block, "- 历史数据结构状态：")
+        data_gap = extract_label_value(block, "- 实际数据缺口：")
+        if is_empty_or_not_applicable(schema_status):
+            errors.append("Code-investigator handoff must explicitly record schema/history-data status.")
+        if indicates_schema_mismatch(schema_status) and is_empty_or_not_applicable(data_gap):
+            errors.append(
+                "Code-investigator handoff identifies schema mismatch but does not describe the real data gap migration must close."
+            )
+
+    if role_id == "solution-designer":
+        schema_status = extract_label_value(block, "- 历史数据结构状态：")
+        migration_strategy = extract_label_value(block, "- 数据迁移策略：")
+        compatibility_conclusion = extract_label_value(block, "- 长期兼容处理结论：")
+        if is_empty_or_not_applicable(schema_status):
+            errors.append("Solution-designer handoff must explicitly record schema/history-data status.")
+        if is_empty_or_not_applicable(migration_strategy):
+            errors.append("Solution-designer handoff must explicitly record the migration strategy decision.")
+        if is_empty_or_not_applicable(compatibility_conclusion):
+            errors.append("Solution-designer handoff must explicitly record the long-lived compatibility conclusion.")
+        if indicates_schema_mismatch(schema_status):
+            if migration_strategy is None or not re.search(r"(迁移|migration)", migration_strategy, re.IGNORECASE):
+                errors.append(
+                    "Solution-designer handoff identifies schema mismatch but does not define an explicit migration strategy."
+                )
+            if compatibility_conclusion and not re.search(r"(不采用|不默认|不引入|禁止)", compatibility_conclusion):
+                errors.append(
+                    "Solution-designer handoff must explicitly reject long-lived compatibility handling when schema mismatch is being handled by migration."
+                )
+
+    if role_id == "implementer":
+        schema_status = extract_label_value(block, "- 历史数据结构状态：")
+        migration_implementation = extract_label_value(block, "- 迁移实现状态：")
+        compatibility_branch_status = extract_label_value(block, "- 兼容分支状态：")
+        if is_empty_or_not_applicable(schema_status):
+            errors.append("Implementer handoff must explicitly record schema/history-data status.")
+        if is_empty_or_not_applicable(migration_implementation):
+            errors.append("Implementer handoff must explicitly record migration implementation status.")
+        if is_empty_or_not_applicable(compatibility_branch_status):
+            errors.append("Implementer handoff must explicitly record compatibility-branch status.")
+        if indicates_schema_mismatch(schema_status):
+            if migration_implementation is None or re.search(r"(未实现|不涉及|无需|待补充)", migration_implementation):
+                errors.append(
+                    "Implementer handoff identifies schema mismatch but does not record an implemented migration entrypoint or migration script."
+                )
+            if compatibility_branch_status and re.search(r"(已新增|已引入|保留兼容|运行时兼容)", compatibility_branch_status):
+                errors.append(
+                    "Implementer handoff must not introduce long-lived compatibility branches as the default response to schema mismatch."
+                )
 
     if role_id == "tester":
         runtime_verification = extract_top_level_bullet_block(block, "- 运行时验证：")

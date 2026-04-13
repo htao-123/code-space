@@ -25,6 +25,7 @@ User-facing workflow communication should use Chinese role names and Chinese pro
 For roles 2-8, research is mandatory before formal output.
 If an existing project lacks usable documentation, minimum documentation backfill is mandatory before normal development continues.
 Bug fixes must use the same workflow under explicit `bugfix` mode; they may not bypass roles as “small patches”.
+When historical data and the new version's data structure diverge, the default response is a migration script, not long-lived compatibility handling in runtime code.
 
 ## Mandatory Handoff Shape
 
@@ -134,6 +135,7 @@ The next role may not:
 - skip required external verification when current facts may have changed
 - continue coding in an existing undocumented project before minimum documentation has been backfilled
 - validate multiple unrelated handoffs in a single non-complete stage gate run
+- respond to historical-data/schema mismatch by silently adding permanent compatibility branches before migration has been evaluated and documented
 
 ## Minimum Checks By Role
 
@@ -150,6 +152,7 @@ The next role may not:
 - identifies affected modules
 - maps input to output flow
 - defines structural invariants
+- when historical data and the new version's data structure diverge, decides whether a migration script is required and records why runtime compatibility handling is not the default
 - in bugfix mode, narrows the repair landing zone and excludes unrelated modules
 
 ### code-investigator
@@ -158,6 +161,7 @@ The next role may not:
 - traces real call chains
 - cites relevant files
 - distinguishes fact from unknown
+- when historical-data/schema mismatch exists, identifies the old structure, the new structure, and the real data gap that migration must close
 - in bugfix mode, records reproduction evidence and root-cause-facing evidence
 
 ### solution-designer
@@ -166,6 +170,7 @@ The next role may not:
 - states root cause layer
 - proposes minimum viable change
 - defines impact range and fallback handling
+- for historical-data/schema mismatch, prefers an explicit migration path over long-lived compatibility logic and records the migration strategy
 - in bugfix mode, records `根因摘要` explicitly
 
 ### implementer
@@ -174,6 +179,7 @@ The next role may not:
 - stays inside approved file scope
 - follows the design handoff
 - avoids unrelated refactors
+- for historical-data/schema mismatch, implements the approved migration script or migration entrypoint instead of introducing default permanent compatibility branches
 - in bugfix mode, fixes the validated root cause and records regression scope
 
 ### reviewer
@@ -220,6 +226,7 @@ The pipeline must stop when:
 - external verification is required but has not been performed
 - an existing project lacks minimum usable documentation and backfill has not been completed
 - bugfix work lacks a recorded repro path, expected/actual result, root cause summary, or regression scope where required
+- historical-data/schema mismatch exists but no migration decision or migration artifact has been recorded
 
 The pipeline should not stop merely to request confirmation when:
 

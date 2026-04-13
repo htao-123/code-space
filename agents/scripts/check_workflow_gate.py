@@ -60,6 +60,24 @@ BUGFIX_STAGE_EXTRA_LABELS = {
 }
 
 ROLE_SPECIFIC_REQUIRED_LABELS = {
+    "architect": [
+        "- 历史数据结构状态：",
+        "- 迁移脚本要求：",
+    ],
+    "code-investigator": [
+        "- 历史数据结构状态：",
+        "- 实际数据缺口：",
+    ],
+    "solution-designer": [
+        "- 历史数据结构状态：",
+        "- 数据迁移策略：",
+        "- 长期兼容处理结论：",
+    ],
+    "implementer": [
+        "- 历史数据结构状态：",
+        "- 迁移实现状态：",
+        "- 兼容分支状态：",
+    ],
     "tester": [
         "- 运行时验证：",
         "- 外部依赖验证：",
