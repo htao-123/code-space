@@ -23,7 +23,9 @@ If an existing project lacks usable documentation, do not code first; create min
 If documentation backfill is required, downstream roles may continue only after the backfill artifact exists.
 Bug fixes must use the same role pipeline under a required `bugfix` mode, not ad hoc patching.
 When historical data and the new version's data structure diverge, do not keep the system alive through default compatibility branches; prefer an explicit migration script that upgrades historical data into the new structure.
-Every completed requirement must end with a workflow retrospective: what in the workflow should be retained, what should be corrected or removed, and whether rule updates were applied from that learning.
+Every completed requirement must end with a requirement retrospective.
+Every completed requirement must also include a workflow retrospective that checks whether this workflow exposed any rule or process issue.
+Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 

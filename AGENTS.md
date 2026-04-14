@@ -23,7 +23,9 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - Bug fixes must use the same workflow, but run in `bugfix` mode instead of free-form patching.
 - If the default project container folder does not exist yet, create it as part of normal new-project setup instead of treating that as a blocker.
 - When historical data and the new version's data structure diverge, do not add long-lived compatibility handling by default; prefer a migration script that upgrades historical data into the new structure.
-- Every completed requirement must include a workflow retrospective that records what in the AI workflow should be kept, what should be corrected or removed, and whether the rules were updated from that learning.
+- Every completed requirement must include a requirement retrospective.
+- Every completed requirement must also include a workflow retrospective that checks whether the AI workflow exposed any rule or process issue.
+- Workflow rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
 
 ## Gate Check
 

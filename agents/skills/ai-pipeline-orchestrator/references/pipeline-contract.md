@@ -26,7 +26,9 @@ For roles 2-8, research is mandatory before formal output.
 If an existing project lacks usable documentation, minimum documentation backfill is mandatory before normal development continues.
 Bug fixes must use the same workflow under explicit `bugfix` mode; they may not bypass roles as “small patches”.
 When historical data and the new version's data structure diverge, the default response is a migration script, not long-lived compatibility handling in runtime code.
-Every completed requirement must include a workflow retrospective that records which workflow practices should be retained, which should be corrected or removed, and whether rule updates were applied from those learnings.
+Every completed requirement must include a requirement retrospective.
+Every completed requirement must also include a workflow retrospective that records whether this workflow exposed any rule or process issue.
+Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise the terminal archive should record that no rule update was needed.
 
 ## Mandatory Handoff Shape
 
@@ -217,6 +219,7 @@ The next role may not:
 - records which workflow rules or practices should be retained
 - records which workflow rules or practices should be corrected or removed
 - records whether a rule update was required and whether it was completed
+- if no workflow rule problem was exposed, records that no rule update was needed
 - in bugfix mode, archives recurrence-prevention notes and regression learnings
 
 ## Stop Conditions
