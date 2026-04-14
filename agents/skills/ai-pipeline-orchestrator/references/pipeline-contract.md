@@ -26,6 +26,7 @@ For roles 2-8, research is mandatory before formal output.
 If an existing project lacks usable documentation, minimum documentation backfill is mandatory before normal development continues.
 Bug fixes must use the same workflow under explicit `bugfix` mode; they may not bypass roles as “small patches”.
 When historical data and the new version's data structure diverge, the default response is a migration script, not long-lived compatibility handling in runtime code.
+Every completed requirement must include a workflow retrospective that records which workflow practices should be retained, which should be corrected or removed, and whether rule updates were applied from those learnings.
 
 ## Mandatory Handoff Shape
 
@@ -212,6 +213,10 @@ The next role may not:
 - records symptom, root cause, fix
 - records validated lessons
 - marks remaining uncertainty
+- records workflow retrospective learnings
+- records which workflow rules or practices should be retained
+- records which workflow rules or practices should be corrected or removed
+- records whether a rule update was required and whether it was completed
 - in bugfix mode, archives recurrence-prevention notes and regression learnings
 
 ## Stop Conditions
@@ -231,6 +236,7 @@ The pipeline must stop when:
 - an existing project lacks minimum usable documentation and backfill has not been completed
 - bugfix work lacks a recorded repro path, expected/actual result, root cause summary, or regression scope where required
 - historical-data/schema mismatch exists but no migration decision or migration artifact has been recorded
+- workflow retrospective fields are missing from the terminal archive
 
 The pipeline should not stop merely to request confirmation when:
 

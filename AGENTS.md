@@ -23,6 +23,7 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - Bug fixes must use the same workflow, but run in `bugfix` mode instead of free-form patching.
 - If the default project container folder does not exist yet, create it as part of normal new-project setup instead of treating that as a blocker.
 - When historical data and the new version's data structure diverge, do not add long-lived compatibility handling by default; prefer a migration script that upgrades historical data into the new structure.
+- Every completed requirement must include a workflow retrospective that records what in the AI workflow should be kept, what should be corrected or removed, and whether the rules were updated from that learning.
 
 ## Gate Check
 
@@ -50,6 +51,7 @@ Use this gate to verify:
 - tester handoffs record runtime verification, external-dependency verification, and unverified reasons when applicable
 - static checks must not replace real success-path validation for features that depend on external APIs, browser runtime behavior, or network requests
 - historical-data/schema mismatch work records whether a migration script is required and must not silently fall back to permanent compatibility branches by default
+- the terminal workflow archive records workflow learnings, workflow problems, and rule-update status
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
 

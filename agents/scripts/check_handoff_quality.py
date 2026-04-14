@@ -546,6 +546,20 @@ def main() -> int:
                     "Architect handoff must not treat long-lived compatibility handling as the default response to schema mismatch."
                 )
 
+    if role_id == "knowledge-keeper":
+        retrospective_summary = extract_label_value(block, "- 流程复盘结论：")
+        keep_practices = extract_label_value(block, "- 值得保留的做法：")
+        remove_or_fix = extract_label_value(block, "- 需要修正或移除的规则：")
+        rule_update_status = extract_label_value(block, "- 规则更新状态：")
+        if is_empty_or_not_applicable(retrospective_summary):
+            errors.append("Knowledge-keeper handoff must record a workflow retrospective conclusion.")
+        if is_empty_or_not_applicable(keep_practices):
+            errors.append("Knowledge-keeper handoff must record which practices should be retained.")
+        if remove_or_fix is None or remove_or_fix.strip() == "":
+            errors.append("Knowledge-keeper handoff must record which rules should be corrected or removed, even if the answer is '无'.")
+        if is_empty_or_not_applicable(rule_update_status):
+            errors.append("Knowledge-keeper handoff must record rule update status explicitly.")
+
     if role_id == "code-investigator":
         schema_status = extract_label_value(block, "- 历史数据结构状态：")
         data_gap = extract_label_value(block, "- 实际数据缺口：")

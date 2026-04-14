@@ -80,6 +80,11 @@ Mark each item before implementation begins.
 - [ ] 如果外部成功路径被标记为“已真实验证”，则 `外部依赖验证` 必须绑定到一个具体 `用例 N`，且该用例在 `【测试结果】` 中为 `pass`
 - [ ] 如果当前角色需要停下来请求用户确认，则 handoff 必须明确记录 `需要用户确认：是`，并给出 `推荐方案 / 推荐原因 / 主要权衡`
 - [ ] 如果当前角色不需要用户确认，则 handoff 必须明确记录 `需要用户确认：否`
+- [ ] 如果当前被校验 block 的 `当前角色标识` 是 `knowledge-keeper`，则必须记录：
+  - `- 流程复盘结论：`
+  - `- 值得保留的做法：`
+  - `- 需要修正或移除的规则：`
+  - `- 规则更新状态：`
 
 ### 3. Project Placement
 
@@ -121,3 +126,4 @@ Also confirm that the validated closing chain exists and is ordered:
 - knowledge-keeper handoff -> `- 下一角色：无`
 - all four closing handoffs share the same `需求标识`
 - all four closing handoffs share the same `项目落点`
+- the terminal archive records workflow retrospective learnings and rule-update status

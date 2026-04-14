@@ -90,6 +90,12 @@ ROLE_SPECIFIC_REQUIRED_LABELS = {
         "- 外部依赖验证：",
         "- 未验证原因：",
     ],
+    "knowledge-keeper": [
+        "- 流程复盘结论：",
+        "- 值得保留的做法：",
+        "- 需要修正或移除的规则：",
+        "- 规则更新状态：",
+    ],
 }
 
 STAGE_EXPECTATIONS = {
