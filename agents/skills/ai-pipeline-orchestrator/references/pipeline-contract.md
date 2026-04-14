@@ -88,6 +88,10 @@ Inside each handoff block, also require these quality labels:
 - 证据映射：
 - 推断说明：
 - 未验证项：
+- 需要用户确认：
+- 推荐方案：
+- 推荐原因：
+- 主要权衡：
 ```
 
 Quality evidence expectations:
@@ -234,6 +238,22 @@ The pipeline should not stop merely to request confirmation when:
 - the current handoff is sufficient
 - no material branching decision remains
 - the current role can finish from existing facts and approved constraints
+
+When the pipeline does need to stop for confirmation because a real decision remains open:
+
+- the current role must provide a concrete recommendation
+- the current role must explain the reason for that recommendation
+- the current role must surface the main tradeoff or risk that prevents automatic continuation
+- the pipeline must not stop with a bare question when a recommendation can be made from existing facts
+- the handoff must explicitly record `需要用户确认：是`
+- the handoff must not leave `推荐方案 / 推荐原因 / 主要权衡` empty
+
+When no confirmation is needed:
+
+- record `需要用户确认：否`
+- record `推荐方案：无`
+- record `推荐原因：无`
+- record `主要权衡：无`
 
 ## Recovery Rules
 

@@ -70,6 +70,10 @@ REQUIRED_QUALITY_LABELS = [
     "- 证据映射：",
     "- 推断说明：",
     "- 未验证项：",
+    "- 需要用户确认：",
+    "- 推荐方案：",
+    "- 推荐原因：",
+    "- 主要权衡：",
 ]
 
 URL_RE = re.compile(r"^https?://\S+$")
@@ -204,6 +208,13 @@ def is_empty_or_not_applicable(value: str | None) -> bool:
         return True
     normalized = value.strip()
     return normalized in {"", "无", "不涉及", "无需", "未填写", "待补充", "待确认"}
+
+
+def is_affirmative_confirmation(value: str | None) -> bool:
+    if value is None:
+        return False
+    normalized = value.strip().lower()
+    return normalized in {"是", "需要", "需确认", "yes", "true", "1"}
 
 
 def parse_mapping_items(items_raw: list[str]) -> tuple[list[tuple[str, str, str, str]], list[str]]:
@@ -502,6 +513,21 @@ def main() -> int:
         errors.append("Inference section must be present even if it says '无'.")
     if unknowns is None:
         errors.append("Unverified items section must be present even if it says '无'.")
+
+    needs_user_confirmation = extract_label_value(block, "- 需要用户确认：")
+    recommended_option = extract_label_value(block, "- 推荐方案：")
+    recommendation_reason = extract_label_value(block, "- 推荐原因：")
+    main_tradeoff = extract_label_value(block, "- 主要权衡：")
+
+    if needs_user_confirmation is None:
+        errors.append("Confirmation flag must be present even if it says '否'.")
+    elif is_affirmative_confirmation(needs_user_confirmation):
+        if is_empty_or_not_applicable(recommended_option):
+            errors.append("When user confirmation is required, 推荐方案 must be explicit and non-empty.")
+        if is_empty_or_not_applicable(recommendation_reason):
+            errors.append("When user confirmation is required, 推荐原因 must be explicit and non-empty.")
+        if is_empty_or_not_applicable(main_tradeoff):
+            errors.append("When user confirmation is required, 主要权衡 must be explicit and non-empty.")
 
     if role_id == "architect":
         schema_status = extract_label_value(block, "- 历史数据结构状态：")

@@ -114,6 +114,19 @@ Stop and ask only when:
 - the current handoff is missing required information
 - the current role cannot determine its output from existing facts and handoffs
 
+When stopping for user confirmation because of real uncertainty:
+
+- do not ask a bare question
+- provide a clear recommendation
+- provide the reason for that recommendation
+- explain the main tradeoff or risk that makes confirmation necessary
+- record that stop explicitly in the handoff using:
+  - `- 需要用户确认：`
+  - `- 推荐方案：`
+  - `- 推荐原因：`
+  - `- 主要权衡：`
+- if no confirmation is needed, record `- 需要用户确认：否` and use `无` for the other three fields
+
 ## Research Policy
 
 For roles 2-8:

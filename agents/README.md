@@ -102,6 +102,8 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - Development is document-first: create or update the current task document before implementation so the workflow does not depend on memory.
 - Workflow execution should be automatic by default; pause only for real ambiguity, missing information, or meaningful branching decisions.
 - Only the current role's unresolved ambiguity may justify stopping for user confirmation.
+- When stopping for confirmation because the current role is genuinely uncertain, do not ask a bare question; give a recommendation and explain why that recommendation is preferred.
+- Record that stop explicitly in the handoff with `需要用户确认 / 推荐方案 / 推荐原因 / 主要权衡`; if no confirmation is needed, record `否 / 无 / 无 / 无`.
 - Research is two-layered: internal project research first, external time-sensitive research when needed.
 - Existing undocumented projects must go through a documentation backfill step before normal development continues.
 - When documentation backfill is required, the backfill artifact becomes a required input for later roles.

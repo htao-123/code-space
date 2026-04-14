@@ -36,6 +36,13 @@ REQUIRED_RESEARCH_LABELS = [
     "- 外部调研结论",
 ]
 
+REQUIRED_CONFIRMATION_LABELS = [
+    "- 需要用户确认：",
+    "- 推荐方案：",
+    "- 推荐原因：",
+    "- 主要权衡：",
+]
+
 REQUIRED_METADATA_LABELS = [
     "- 当前角色标识：",
     "- 当前交接标识：",
@@ -212,6 +219,13 @@ def check_handoff_doc(
         errors.append(
             "Latest handoff block missing required research records in "
             f"{location_label}: {', '.join(missing_research)}"
+        )
+
+    missing_confirmation = [label for label in REQUIRED_CONFIRMATION_LABELS if label not in block]
+    if missing_confirmation:
+        errors.append(
+            "Latest handoff block missing required confirmation records in "
+            f"{location_label}: {', '.join(missing_confirmation)}"
         )
 
     missing_metadata = [label for label in REQUIRED_METADATA_LABELS if label not in block]

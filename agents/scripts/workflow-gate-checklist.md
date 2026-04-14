@@ -49,6 +49,10 @@ Mark each item before implementation begins.
   - `- 证据映射：`
   - `- 推断说明：`
   - `- 未验证项：`
+  - `- 需要用户确认：`
+  - `- 推荐方案：`
+  - `- 推荐原因：`
+  - `- 主要权衡：`
 - [ ] It records required handoff metadata explicitly:
   - `- 当前角色标识：`
   - `- 当前交接标识：`
@@ -74,6 +78,8 @@ Mark each item before implementation begins.
   - `- 未验证原因：`
 - [ ] 如果功能依赖外部 API、浏览器运行时或网络请求，测试结论不能只基于静态检查；必须完成真实成功路径验证，或明确记录未验证原因
 - [ ] 如果外部成功路径被标记为“已真实验证”，则 `外部依赖验证` 必须绑定到一个具体 `用例 N`，且该用例在 `【测试结果】` 中为 `pass`
+- [ ] 如果当前角色需要停下来请求用户确认，则 handoff 必须明确记录 `需要用户确认：是`，并给出 `推荐方案 / 推荐原因 / 主要权衡`
+- [ ] 如果当前角色不需要用户确认，则 handoff 必须明确记录 `需要用户确认：否`
 
 ### 3. Project Placement
 
