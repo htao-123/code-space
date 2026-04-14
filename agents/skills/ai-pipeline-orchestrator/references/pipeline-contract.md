@@ -192,6 +192,15 @@ The next role may not:
 ### reviewer
 
 - verifies review assumptions against current code and relevant current external standards when needed
+- checks business correctness against the actual requirement, not only code plausibility
+- checks whether the change stayed within the minimum necessary scope
+- checks logic clarity and readability
+- checks whether architecture boundaries or module responsibilities were damaged
+- checks state flow, async safety, and data consistency risks
+- checks failure handling, fallback behavior, and user-facing error handling
+- checks obvious performance and resource risks
+- checks testability, regression risk, and rollback readiness
+- checks AI-generated-code risks such as imagined interfaces, copied-but-misaligned logic, silent requirement drift, and missed project constraints
 - flags bugs and regressions
 - checks scope drift
 - records residual risk
