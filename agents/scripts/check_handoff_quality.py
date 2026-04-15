@@ -210,11 +210,48 @@ def is_empty_or_not_applicable(value: str | None) -> bool:
     return normalized in {"", "无", "不涉及", "无需", "未填写", "待补充", "待确认"}
 
 
+def is_no_change_value(value: str | None) -> bool:
+    if value is None:
+        return False
+    normalized = value.strip()
+    return normalized in {
+        "无",
+        "无需",
+        "无需更新",
+        "无规则更新",
+        "无规则问题",
+        "未发现规则问题",
+        "未发现流程问题",
+        "不涉及",
+        "无。",
+        "无需。",
+        "无需更新。",
+        "无规则问题。",
+        "未发现规则问题。",
+        "未发现流程问题。",
+    }
+
+
 def is_affirmative_confirmation(value: str | None) -> bool:
     if value is None:
         return False
     normalized = value.strip().lower()
     return normalized in {"是", "需要", "需确认", "yes", "true", "1"}
+
+
+def is_user_solution_approval(value: str | None) -> bool:
+    if value is None:
+        return False
+    normalized = value.strip().lower()
+    if normalized in {"", "无", "否", "未确认", "未批准", "待确认", "待补充", "n/a"}:
+        return False
+    return bool(
+        re.search(
+            r"(已批准|批准|已确认|确认通过|同意|通过|approved|confirmed|accepted|yes|true|ok)",
+            normalized,
+            re.IGNORECASE,
+        )
+    )
 
 
 def parse_mapping_items(items_raw: list[str]) -> tuple[list[tuple[str, str, str, str]], list[str]]:
@@ -326,6 +363,7 @@ def main() -> int:
 
     role_id = extract_label_value(block, "- 当前角色标识：")
     role_display = extract_label_value(block, "- 当前角色：")
+    next_role_id = extract_label_value(block, "- 下一角色标识：")
     if role_id is None:
         errors.append("Missing current role id metadata.")
     else:
@@ -547,10 +585,19 @@ def main() -> int:
                 )
 
     if role_id == "knowledge-keeper":
+        requirement_retrospective = extract_label_value(block, "- 需求复盘结论：")
+        self_review = extract_label_value(block, "- 自我审查结论：")
+        self_correction = extract_label_value(block, "- 自我纠错项：")
         retrospective_summary = extract_label_value(block, "- 流程复盘结论：")
         keep_practices = extract_label_value(block, "- 值得保留的做法：")
         remove_or_fix = extract_label_value(block, "- 需要修正或移除的规则：")
         rule_update_status = extract_label_value(block, "- 规则更新状态：")
+        if is_empty_or_not_applicable(requirement_retrospective):
+            errors.append("Knowledge-keeper handoff must record a requirement retrospective conclusion.")
+        if is_empty_or_not_applicable(self_review):
+            errors.append("Knowledge-keeper handoff must record a self-review conclusion.")
+        if self_correction is None or self_correction.strip() == "":
+            errors.append("Knowledge-keeper handoff must record self-correction items, even if the answer is '无'.")
         if is_empty_or_not_applicable(retrospective_summary):
             errors.append("Knowledge-keeper handoff must record a workflow retrospective conclusion.")
         if is_empty_or_not_applicable(keep_practices):
@@ -559,6 +606,14 @@ def main() -> int:
             errors.append("Knowledge-keeper handoff must record which rules should be corrected or removed, even if the answer is '无'.")
         if is_empty_or_not_applicable(rule_update_status):
             errors.append("Knowledge-keeper handoff must record rule update status explicitly.")
+        if (
+            remove_or_fix is not None
+            and not is_no_change_value(remove_or_fix)
+            and is_no_change_value(rule_update_status)
+        ):
+            errors.append(
+                "Knowledge-keeper handoff identifies a workflow rule/process problem but records no rule update; update the rule or record an explicit blocker."
+            )
 
     if role_id == "code-investigator":
         schema_status = extract_label_value(block, "- 历史数据结构状态：")
@@ -574,12 +629,22 @@ def main() -> int:
         schema_status = extract_label_value(block, "- 历史数据结构状态：")
         migration_strategy = extract_label_value(block, "- 数据迁移策略：")
         compatibility_conclusion = extract_label_value(block, "- 长期兼容处理结论：")
+        user_solution_approval = extract_label_value(block, "- 用户方案批准：")
         if is_empty_or_not_applicable(schema_status):
             errors.append("Solution-designer handoff must explicitly record schema/history-data status.")
         if is_empty_or_not_applicable(migration_strategy):
             errors.append("Solution-designer handoff must explicitly record the migration strategy decision.")
         if is_empty_or_not_applicable(compatibility_conclusion):
             errors.append("Solution-designer handoff must explicitly record the long-lived compatibility conclusion.")
+        if next_role_id == "implementer":
+            if not is_affirmative_confirmation(needs_user_confirmation):
+                errors.append(
+                    "Solution-designer handoff that routes to implementer must set 需要用户确认：是 for the mandatory solution approval gate."
+                )
+            if not is_user_solution_approval(user_solution_approval):
+                errors.append(
+                    "Solution-designer handoff that routes to implementer must record explicit user approval in 用户方案批准 before implementation can begin."
+                )
         if indicates_schema_mismatch(schema_status):
             if migration_strategy is None or not re.search(r"(迁移|migration)", migration_strategy, re.IGNORECASE):
                 errors.append(

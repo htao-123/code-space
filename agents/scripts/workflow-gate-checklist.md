@@ -80,6 +80,7 @@ Mark each item before implementation begins.
 - [ ] 如果外部成功路径被标记为“已真实验证”，则 `外部依赖验证` 必须绑定到一个具体 `用例 N`，且该用例在 `【测试结果】` 中为 `pass`
 - [ ] 如果当前角色需要停下来请求用户确认，则 handoff 必须明确记录 `需要用户确认：是`，并给出 `推荐方案 / 推荐原因 / 主要权衡`
 - [ ] 如果当前角色不需要用户确认，则 handoff 必须明确记录 `需要用户确认：否`
+- [ ] 如果当前 handoff 是 `solution-designer -> implementer`，必须记录 `用户方案批准：` 且内容明确表示用户已批准；否则不得进入 implementer
 - [ ] 如果当前被校验 block 的 `当前角色标识` 是 `reviewer`，则 review 至少覆盖：
   - 业务正确性
   - 改动范围是否合理
@@ -91,10 +92,14 @@ Mark each item before implementation begins.
   - 可测试性和可回归性
   - AI 生成风险检查
 - [ ] 如果当前被校验 block 的 `当前角色标识` 是 `knowledge-keeper`，则必须记录：
+  - `- 需求复盘结论：`
+  - `- 自我审查结论：`
+  - `- 自我纠错项：`
   - `- 流程复盘结论：`
   - `- 值得保留的做法：`
   - `- 需要修正或移除的规则：`
   - `- 规则更新状态：`
+- [ ] 如果 knowledge-keeper 记录了真实流程/规则问题，则 `规则更新状态` 不能写“无/无需更新”；必须记录已更新或明确阻塞原因
 
 ### 3. Project Placement
 

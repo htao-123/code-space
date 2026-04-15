@@ -27,6 +27,7 @@ If an existing project lacks usable documentation, minimum documentation backfil
 Bug fixes must use the same workflow under explicit `bugfix` mode; they may not bypass roles as “small patches”.
 When historical data and the new version's data structure diverge, the default response is a migration script, not long-lived compatibility handling in runtime code.
 Every completed requirement must include a requirement retrospective.
+Every completed requirement must include self-review and self-correction records in the terminal `knowledge-keeper` handoff.
 Every completed requirement must also include a workflow retrospective that records whether this workflow exposed any rule or process issue.
 Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise the terminal archive should record that no rule update was needed.
 
@@ -224,6 +225,7 @@ The next role may not:
 - records symptom, root cause, fix
 - records validated lessons
 - marks remaining uncertainty
+- records requirement retrospective, self-review, and self-correction
 - records workflow retrospective learnings
 - records which workflow rules or practices should be retained
 - records which workflow rules or practices should be corrected or removed
@@ -256,6 +258,22 @@ The pipeline should not stop merely to request confirmation when:
 - the current handoff is sufficient
 - no material branching decision remains
 - the current role can finish from existing facts and approved constraints
+- the workflow is not attempting to cross from `solution-designer` into `implementer`
+
+The pipeline must always stop for explicit solution approval before implementation when:
+
+- the latest valid role is `solution-designer`
+- the next role would be `implementer`
+- a proposed solution changes user-facing behavior, architecture, dependencies, data handling, platform capabilities, or delivery scope
+
+For this approval stop:
+
+- present the solution to the user in Chinese before running the implementer gate or editing code
+- include the implementation scope, target files/modules, verification plan, and main tradeoffs
+- ask the user to approve, reject, or request changes
+- record `需要用户确认：是` in the solution handoff
+- record the user's approval in the task document or next handoff before implementation begins
+- the implementer gate must fail unless the `solution-designer` handoff contains `用户方案批准` with explicit approval
 
 When the pipeline does need to stop for confirmation because a real decision remains open:
 

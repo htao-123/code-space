@@ -24,8 +24,10 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - If the default project container folder does not exist yet, create it as part of normal new-project setup instead of treating that as a blocker.
 - When historical data and the new version's data structure diverge, do not add long-lived compatibility handling by default; prefer a migration script that upgrades historical data into the new structure.
 - Every completed requirement must include a requirement retrospective.
+- Every completed requirement must include self-review and self-correction records in the terminal `knowledge-keeper` handoff.
 - Every completed requirement must also include a workflow retrospective that checks whether the AI workflow exposed any rule or process issue.
 - Workflow rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
+- Before advancing from `solution-designer` to `implementer`, present the proposed solution to the user and wait for explicit approval. Do not treat an internally completed solution handoff as approval to start implementation.
 
 ## Gate Check
 
@@ -54,6 +56,7 @@ Use this gate to verify:
 - static checks must not replace real success-path validation for features that depend on external APIs, browser runtime behavior, or network requests
 - historical-data/schema mismatch work records whether a migration script is required and must not silently fall back to permanent compatibility branches by default
 - the terminal workflow archive records workflow learnings, workflow problems, and rule-update status
+- the terminal workflow archive records requirement retrospective, self-review, self-correction, workflow retrospective, and rule-update status
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
 
@@ -109,6 +112,13 @@ Advance automatically when:
 - the next role is already determined by the workflow
 - the current handoff provides enough information
 - there is no material branch with non-obvious consequences
+- the workflow is not crossing from `solution-designer` into `implementer`
+
+Always stop and ask for explicit user approval when:
+
+- `solution-designer` has produced the implementation plan and the next role would be `implementer`
+- a proposed solution changes user-facing behavior, architecture, dependencies, data handling, platform capabilities, or delivery scope
+- the user has asked to review or confirm a plan before the next step
 
 Stop and ask only when:
 
@@ -117,6 +127,18 @@ Stop and ask only when:
 - the choice affects scope, architecture, delivery, or user promises
 - the current handoff is missing required information
 - the current role cannot determine its output from existing facts and handoffs
+
+When stopping for solution approval before implementation:
+
+- present the proposed solution in Chinese, including scope, files/modules to change, verification plan, and main tradeoffs
+- ask the user to approve, reject, or request changes before running the implementer gate or editing code
+- record that stop explicitly in the handoff using:
+  - `- 需要用户确认：是`
+  - `- 推荐方案：`
+  - `- 推荐原因：`
+  - `- 主要权衡：`
+- after the user approves, record the approval in the task document or next handoff before implementation begins
+- the implementer gate must fail unless the `solution-designer` handoff contains `- 用户方案批准：` with explicit approval
 
 When stopping for user confirmation because of real uncertainty:
 

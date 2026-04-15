@@ -24,6 +24,7 @@ If documentation backfill is required, downstream roles may continue only after 
 Bug fixes must use the same role pipeline under a required `bugfix` mode, not ad hoc patching.
 When historical data and the new version's data structure diverge, do not keep the system alive through default compatibility branches; prefer an explicit migration script that upgrades historical data into the new structure.
 Every completed requirement must end with a requirement retrospective.
+Every completed requirement must record self-review and self-correction in the terminal knowledge-keeper handoff.
 Every completed requirement must also include a workflow retrospective that checks whether this workflow exposed any rule or process issue.
 Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
 
@@ -105,6 +106,7 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - New builds or substantial subprojects must live in a dedicated folder instead of the repository root.
 - Development is document-first: create or update the current task document before implementation so the workflow does not depend on memory.
 - Workflow execution should be automatic by default; pause only for real ambiguity, missing information, or meaningful branching decisions.
+- The transition from `solution-designer` to `implementer` is a mandatory approval gate: present the solution to the user and wait for explicit approval before running the implementer gate or editing code.
 - Only the current role's unresolved ambiguity may justify stopping for user confirmation.
 - When stopping for confirmation because the current role is genuinely uncertain, do not ask a bare question; give a recommendation and explain why that recommendation is preferred.
 - Record that stop explicitly in the handoff with `需要用户确认 / 推荐方案 / 推荐原因 / 主要权衡`; if no confirmation is needed, record `否 / 无 / 无 / 无`.
