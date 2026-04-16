@@ -256,7 +256,8 @@ def validate_project_doc_location(
     if doc_scope == repo_root.resolve():
         errors.append(
             "Real-project current project document must live inside the real project tree, "
-            f"not at repository root: {repo_relative(task_doc, repo_root)}"
+            f"not at repository root: {repo_relative(task_doc, repo_root)}. "
+            "Recommended path: <project>/current-project.md"
         )
         return
     aligned = False
@@ -268,7 +269,8 @@ def validate_project_doc_location(
     if not aligned:
         errors.append(
             "Current project document must live in the same project tree as at least one validated target path: "
-            f"{repo_relative(task_doc, repo_root)}"
+            f"{repo_relative(task_doc, repo_root)}. "
+            "Recommended path: <project>/current-project.md"
         )
 
 

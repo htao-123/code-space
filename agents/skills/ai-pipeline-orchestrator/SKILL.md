@@ -15,6 +15,21 @@ This skill must override any tendency to "just do the work directly" or to inven
 This also includes structure decisions: when creating a new project or substantial subproject, require a dedicated folder instead of scattering files at repository root.
 This also includes documentation discipline: before development begins, require a current project document with workflow frontmatter so progress does not depend on memory alone.
 For real project work, that current project document belongs inside the real project path.
+For real project work, the default current project document path is `<project>/current-project.md`.
+Historical requirement documents belong under `<project>/docs/pipeline/` using `YYYY-MM-DD-<project>-<topic>-<work-type>.md` naming and are not the default gate input.
+Each historical requirement document must map to exactly one `requirement_id`.
+When a new independent requirement starts, archive the previous current project document into `docs/pipeline/` before starting the new `<project>/current-project.md`.
+When the work is a continuation of the same requirement, keep updating `<project>/current-project.md` and append history only to that same requirement's archived document if needed.
+During research, use `<project>/current-project.md` as the primary document.
+Only open the matching `docs/pipeline/` historical document when you need prior decisions, stage evolution, earlier handoffs, or evidence indexes for that same requirement.
+Historical documents are secondary research inputs and do not replace the current document as the default gate-facing source of truth.
+Use these artifact naming rules for real-project workflow execution:
+- current project document: `<project>/current-project.md`
+- historical requirement document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
+- requirement id: `<WORKTYPE>-<PROJECT>-<TOPIC>-NNN`
+- internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
+- external research: `<project>/references/external/<topic>-research-YYYY-MM-DD.md`
+The current project document keeps current state, current conclusions, and evidence indexes; long-form raw evidence belongs in `references/internal` or `references/external` by default.
 For rule-system changes under `agents/`, update current rules directly and do not create rule-side workflow history documents.
 When a rule-system change exists because project execution exposed a real workflow-rule or process problem, record the governance result in the fixed `## Rule Governance` section of `agents/docs/context/workflow-system-context.md`.
 This workflow should advance automatically whenever the next step is already determined. Do not interrupt merely to ask for permission to follow the established path.
@@ -81,6 +96,7 @@ You may not end a requirement halfway merely because an intermediate role comple
 - If the task changes materially, update the current project document before continuing development.
 - Treat undocumented implementation as a process violation because it makes the workflow depend on memory.
 - If the work is on a real project, keep that project document in the real project path rather than under `agents/docs/`.
+- For real projects, prefer `<project>/current-project.md` as the gate-facing current document and treat `docs/pipeline/` files as archived history rather than the default gate target.
 - If the work is on the rule system itself, do not create or retain rule-side workflow history documents; update the current rules and current reusable context only.
 - If the work is on the rule system itself because project execution exposed a real workflow-rule or process problem, update the fixed `## Rule Governance` section in `agents/docs/context/workflow-system-context.md` as part of the current reusable context.
 - If an existing project has no usable documentation, require a minimum documentation backfill before continuing.

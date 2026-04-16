@@ -33,6 +33,21 @@ AI writes frontmatter workflow fields only when the rule-defined condition is al
 Implementation entry must validate the full requirement -> architecture -> investigation -> solution chain.
 Completion must validate the full requirement -> architecture -> investigation -> solution -> implementation -> review -> test -> archive chain.
 When this workflow is applied to a real project, that project must keep its own current project document inside the real project path.
+For real projects, the default current project document path is `<project>/current-project.md`.
+Historical requirement documents belong under `<project>/docs/pipeline/` and are not the default gate input.
+Each historical requirement document should represent exactly one requirement.
+When a new independent requirement starts, archive the previous current project document into `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md` before starting the new `<project>/current-project.md`.
+When the work is a continuation of the same requirement, continue updating `<project>/current-project.md` and append history only to that same requirement's archived document if needed.
+During research, read `<project>/current-project.md` first as the primary input.
+Use the matching `docs/pipeline/` historical document only when you need prior decisions, stage evolution, earlier handoffs, or evidence indexes for the same requirement.
+Historical documents are secondary research inputs and must not replace the current project document as the default gate-facing source of truth.
+Use these naming rules for real-project workflow artifacts:
+- current project document: `<project>/current-project.md`
+- historical requirement document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
+- requirement id: `<WORKTYPE>-<PROJECT>-<TOPIC>-NNN`
+- internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
+- external research: `<project>/references/external/<topic>-research-YYYY-MM-DD.md`
+The current project document should keep current state, current conclusions, and evidence indexes; long-form raw evidence belongs in `references/internal` or `references/external` by default.
 Rules-side historical workflow documents should not accumulate under `agents/docs/`.
 `agents/docs/` is reserved for current reusable context, not for rule-system self-edit history.
 
@@ -112,7 +127,13 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - If there is any doubt, fall back to the orchestrator instead of continuing free-form.
 - New builds or substantial subprojects must live in a dedicated folder instead of the repository root.
 - Development is document-first: create or update the current project document before implementation so the workflow does not depend on memory.
-- For real project work, that current project document belongs inside the real project path.
+- For real project work, that current project document belongs inside the real project path and should default to `<project>/current-project.md`.
+- Historical requirement documents should default to `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`.
+- `docs/pipeline/` documents are history artifacts, not the default gate input.
+- Each historical requirement document maps to exactly one `requirement_id`.
+- New independent requirements archive the previous `current-project.md` into `docs/pipeline/` before starting a new current document.
+- Internal evidence should default to `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`.
+- External research should default to `<project>/references/external/<topic>-research-YYYY-MM-DD.md`.
 - For rule-system changes under `agents/`, update current rules directly and do not create rule-side workflow history documents.
 - Workflow execution should be automatic by default; pause only for real ambiguity, missing information, or meaningful branching decisions.
 - The transition from `solution-designer` to `implementer` is a mandatory approval gate: present the solution to the user and wait for explicit approval before running the implementer gate or editing code.
@@ -137,6 +158,7 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 
 The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
 The gate checker reads workflow state from project-document frontmatter first, then validates that handoff content supports that declared state.
+For real projects, pass `<project>/current-project.md` as the default `--task-doc` / `--handoff-doc` input. Archived `docs/pipeline/` files remain valid history, but they are not the default gate target.
 The implementation gate validates `workflow_current_stage=solution-designer`, `workflow_solution_approved=1`, `workflow_pre_chain_verified=1`, and a complete pre-implementation chain.
 The completion gate validates one project document containing the full 8-role chain from requirement-analyst through knowledge-keeper.
 The workflow gate also runs the handoff quality checker by default.
