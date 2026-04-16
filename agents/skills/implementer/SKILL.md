@@ -17,17 +17,18 @@ Implement only the approved design. You do not optimize beyond the design unless
 
 ## Workflow
 
-1. Read the design handoff and confirm file scope.
-2. Run the workflow gate checker before coding:
+1. Complete internal research on the design handoff, current project document, current code, and approved file scope.
+2. Complete external research and record official facts, mainstream approaches, and mature implementation patterns relevant to the implementation.
+3. Run the workflow gate checker before coding:
 
 ```bash
 python3 agents/scripts/check_workflow_gate.py --help
 ```
 
-3. Implement only the approved changes.
-4. Keep unrelated code untouched.
-5. Summarize exact changed files and diff-level intent.
-6. Hand off to review without reinterpreting the design.
+4. Implement only the approved changes.
+5. Keep unrelated code untouched.
+6. Summarize exact changed files and diff-level intent.
+7. Hand off to review without reinterpreting the design.
 
 ## Output Contract
 
@@ -46,7 +47,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, gate result, research, evidence, fact mapping, inference, unknown, confirmation, migration implementation, and compatibility-branch labels required by the pipeline contract. Do not code until the implementer gate has validated the full pre-implementation chain.
+`【已核实输入】` and `【调研发现】` must include the metadata, gate result, research, unknown, confirmation, migration implementation, and compatibility-branch labels required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. Do not code until the implementer gate has validated `workflow_current_stage: solution-designer`, `workflow_solution_approved: 1`, `workflow_pre_chain_verified: 1`, and the full pre-implementation chain. After implementation handoff is complete, update `workflow_current_stage: implementer` and `workflow_implementer_passed: 1`.
 
 Under `【交付物】`, include:
 

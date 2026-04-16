@@ -14,26 +14,27 @@ Do not skip a role because it seems obvious.
 Every requirement must run the full workflow to completion.
 Do not continue when the immediately prior valid handoff is missing.
 Do not scatter a new project across the repository root; place it in a dedicated project folder first.
-Do not start development before writing the current task's handoff or planning document.
+Do not start development before writing the current project document.
 Do not ask for confirmation when the workflow, handoffs, and repository facts already determine the next step.
 Use Chinese when reporting roles and workflow progress to the user.
-For roles 2-8, do not produce formal output before completing required research.
+For every role, do not produce formal output before completing internal research and external research.
 When the work could be invalidated by outdated external information, external research is mandatory.
+External research must cover not only official current facts, but also current mainstream approaches and mature best-practice implementations when they affect the role's decision.
 If an existing project lacks usable documentation, do not code first; create minimum viable documentation first.
 If documentation backfill is required, downstream roles may continue only after the backfill artifact exists.
 Bug fixes must use the same role pipeline under a required `bugfix` mode, not ad hoc patching.
 When historical data and the new version's data structure diverge, do not keep the system alive through default compatibility branches; prefer an explicit migration script that upgrades historical data into the new structure.
 Every completed requirement must end with a requirement retrospective.
 Every completed requirement must record self-review and self-correction in the terminal knowledge-keeper handoff.
-Every completed requirement must also include a workflow retrospective that checks whether this workflow exposed any rule or process issue.
-Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
-Do not silently rewrite completed handoff blocks after a gate failure.
-Every gate failure repair must be classified as `format-only`, `evidence-correction`, `content-regeneration`, or `workflow-repair`.
-Only `format-only` repair may use the normalizer directly; content or workflow repair must append a correction record or return to the responsible role.
-When the normalizer writes a file, it must also append a task-level `format-only` repair record.
-Implementation entry must validate the full requirement -> architecture -> investigation -> solution chain, not only the final solution block.
+If project execution exposes a real workflow-rule or process problem, handle it as a separate rule-system change under `agents/` rather than writing workflow governance fields into the project document.
+Rule-side workflow governance must be recorded in the fixed `## Rule Governance` section of `agents/docs/context/workflow-system-context.md`.
+Workflow status lives in project-document frontmatter, not in brittle prose matching.
+AI writes frontmatter workflow fields only when the rule-defined condition is already satisfied.
+Implementation entry must validate the full requirement -> architecture -> investigation -> solution chain.
 Completion must validate the full requirement -> architecture -> investigation -> solution -> implementation -> review -> test -> archive chain.
-Repair records are task-level `## Repair Record` blocks, not informal prose inside a later role.
+When this workflow is applied to a real project, that project must keep its own current project document inside the real project path.
+Rules-side historical workflow documents should not accumulate under `agents/docs/`.
+`agents/docs/` is reserved for current reusable context, not for rule-system self-edit history.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 
@@ -65,7 +66,7 @@ If an agent or user request conflicts with this workflow, the conflict must be s
    - Must explicitly record runtime verification, external-dependency verification, and any unverified reason
 8. [knowledge-keeper](./skills/knowledge-keeper/SKILL.md)
    - Archives validated conclusions and reusable lessons
-   - Must also record workflow retrospective learnings and whether rules should be updated
+   - Must also record requirement retrospective, self-review, and self-correction
 
 ## Required Order
 
@@ -102,7 +103,6 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - 当前角色标识：
 - 当前交接标识：
 - 需求标识：
-- 项目落点：
 - 下一角色标识：
 ```
 
@@ -111,13 +111,15 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - No agent may replace this workflow with its own improvised process.
 - If there is any doubt, fall back to the orchestrator instead of continuing free-form.
 - New builds or substantial subprojects must live in a dedicated folder instead of the repository root.
-- Development is document-first: create or update the current task document before implementation so the workflow does not depend on memory.
+- Development is document-first: create or update the current project document before implementation so the workflow does not depend on memory.
+- For real project work, that current project document belongs inside the real project path.
+- For rule-system changes under `agents/`, update current rules directly and do not create rule-side workflow history documents.
 - Workflow execution should be automatic by default; pause only for real ambiguity, missing information, or meaningful branching decisions.
 - The transition from `solution-designer` to `implementer` is a mandatory approval gate: present the solution to the user and wait for explicit approval before running the implementer gate or editing code.
 - Only the current role's unresolved ambiguity may justify stopping for user confirmation.
 - When stopping for confirmation because the current role is genuinely uncertain, do not ask a bare question; give a recommendation and explain why that recommendation is preferred.
 - Record that stop explicitly in the handoff with `需要用户确认 / 推荐方案 / 推荐原因 / 主要权衡`; if no confirmation is needed, record `否 / 无 / 无 / 无`.
-- Research is two-layered: internal project research first, external time-sensitive research when needed.
+- Research is two-layered: internal project research first, external research second for every role.
 - Existing undocumented projects must go through a documentation backfill step before normal development continues.
 - When documentation backfill is required, the backfill artifact becomes a required input for later roles.
 - If the default new-project container folder (for example `projects/`) does not exist yet, create it during normal setup rather than blocking the workflow.
@@ -126,28 +128,21 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 ## Useful References
 
 - [Pipeline Contract](./skills/ai-pipeline-orchestrator/references/pipeline-contract.md)
-- [Pipeline Demo](./skills/ai-pipeline-orchestrator/references/pipeline-demo.md)
 - [Workflow Gate Checker](./scripts/check_workflow_gate.py)
 - [Handoff Quality Checker](./scripts/check_handoff_quality.py)
-- [Handoff Format Normalizer](./scripts/normalize_handoff_format.py)
 - [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
+- [Legacy Project Doc Upgrader](./scripts/upgrade_legacy_project_doc.py)
 - [External Research Playbook](./references/external-research-playbook.md)
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
 The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
-The implementation gate is also a pre-implementation chain gate: the recent handoff chain must route `requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer`.
-The completion gate validates one task document containing the full 8-role chain from requirement-analyst through knowledge-keeper; do not run completion with only implementer/reviewer/tester/knowledge-keeper handoff documents.
+The gate checker reads workflow state from project-document frontmatter first, then validates that handoff content supports that declared state.
+The implementation gate validates `workflow_current_stage=solution-designer`, `workflow_solution_approved=1`, `workflow_pre_chain_verified=1`, and a complete pre-implementation chain.
+The completion gate validates one project document containing the full 8-role chain from requirement-analyst through knowledge-keeper.
 The workflow gate also runs the handoff quality checker by default.
 The quality checker is mandatory during normal workflow execution.
-If the gate is blocked only by handoff formatting shape, run the handoff format normalizer with explicit `--repair-type format-only --ack-format-only` before treating the requirement as blocked; the normalizer appends a task-level `format-only` repair record.
-Do not use normalization to add missing facts, approvals, role conclusions, test results, or retrospective conclusions.
-Relationship validation now prefers stable IDs over free-text matching.
-Use `当前角色标识 / 下一角色标识 / 当前交接标识` for workflow routing.
-Treat `当前角色` as display-only text, not a gate source of truth.
-Use `FACT-* / EVID-IN-* / EVID-EX-*` identifiers for facts and evidence.
-Use `EVID-EX-* -> 本地快照路径 | URL` for external evidence targets.
-Write fact items as `FACT-001 -> 证据摘录：摘录内容`.
-Write evidence mappings as `FACT-001 -> EVID-IN-001::keyword::摘录`.
+Use these frontmatter fields as the minimum workflow state:
+`requirement_id`, `workflow_project_type`, `workflow_work_type`, `workflow_doc_backfilled`, `workflow_current_stage`, `workflow_solution_approved`, `workflow_pre_chain_verified`, `workflow_implementer_passed`, `workflow_reviewer_passed`, `workflow_tester_passed`, `workflow_knowledge_keeper_passed`, `workflow_completion_passed`.
 
 ## Output Templates
 
@@ -185,6 +180,12 @@ Bugfix mode expectations:
 When an existing project lacks usable documentation, follow:
 
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
+
+When workflow needs to read and continue using an existing project's older project document, and that document predates the current frontmatter-first workflow, upgrade it before continuing:
+
+```bash
+python3 agents/scripts/upgrade_legacy_project_doc.py --project-doc <doc> --write
+```
 
 When current external facts may affect correctness, follow:
 

@@ -1,157 +1,113 @@
 # Workflow Gate Checklist
 
-Use this checklist only when the automatic gate script cannot run because of local environment limitations.
-
-## When To Use
-
-- `python3` is unavailable
-- the gate script cannot execute in the current environment
-- the runtime is missing and cannot be repaired quickly
-
-Do not use this checklist just for convenience. Prefer the automatic gate whenever possible.
-If the automatic gate is failing only because of handoff formatting shape, normalize the handoff document first with `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write --repair-type format-only --ack-format-only` before falling back to this checklist.
-Use normalization only for `format-only` repair. Do not normalize in missing evidence, user approval, role conclusions, root-cause summaries, test results, or retrospective content.
+Use this checklist only when the automatic gate script cannot run because the local environment cannot execute `python3`.
 
 ## Manual Checks
 
-Mark each item before implementation begins.
+### 1. Project Document
 
-### 1. Current Task Document
+- [ ] A current project document exists
+- [ ] The document starts with frontmatter
+- [ ] Frontmatter includes:
+  - `requirement_id`
+  - `workflow_project_type`
+  - `workflow_work_type`
+  - `workflow_doc_backfilled`
+  - `workflow_current_stage`
+  - `workflow_solution_approved`
+  - `workflow_pre_chain_verified`
+  - `workflow_implementer_passed`
+  - `workflow_reviewer_passed`
+  - `workflow_tester_passed`
+  - `workflow_knowledge_keeper_passed`
+  - `workflow_completion_passed`
+- [ ] Every workflow boolean field is `0` or `1`
+- [ ] `workflow_current_stage` is one of:
+  - `requirement-analyst`
+  - `architect`
+  - `code-investigator`
+  - `solution-designer`
+  - `implementer`
+  - `reviewer`
+  - `tester`
+  - `knowledge-keeper`
+  - `complete`
 
-- [ ] A current task document or planning document exists
-- [ ] It matches the latest understanding of scope
-- [ ] If the task changed, the document was updated first
-
-### 2. Workflow Handoffs
+### 2. Handoff Shape
 
 - [ ] The latest required handoff exists
-- [ ] If a prior gate failed, the task document records the failed gate command or failure summary
-- [ ] If a prior gate failed, the repair is classified as one of: `format-only`, `evidence-correction`, `content-regeneration`, `workflow-repair`
-- [ ] If a prior gate failed or the normalizer wrote the file, a task-level `## Repair Record` exists
-- [ ] Each `## Repair Record` records `修复类型 / 修复处理 / 负责角色 / 是否改变需求含义 / 是否改变实现行为 / 后续验证`
-- [ ] If the repair is not `format-only`, the repair appended a correction record or returned to the responsible role instead of silently editing a completed block
-- [ ] Completed role handoff blocks were not silently overwritten after downstream roles consumed them
-- [ ] It contains all required sections:
+- [ ] Each handoff contains:
+  - `【角色结论】`
   - `【已核实输入】`
   - `【调研发现】`
-  - `【角色结论】`
   - `【交付物】`
   - `【约束】`
   - `【校验标准】`
   - `【禁止事项】`
   - `【交接给下一个角色】`
-- [ ] It contains the required Chinese handoff labels:
+- [ ] Each handoff includes:
+  - `- 当前角色标识：`
+  - `- 当前交接标识：`
+  - `- 需求标识：`
+  - `- 下一角色标识：`
+- [ ] Each handoff includes:
   - `- 下一角色：`
   - `- 可用输入：`
   - `- 非目标：`
   - `- 完成条件：`
-- [ ] It records external research explicitly:
-  - `- 是否需要外部调研`
-  - `- 外部调研来源`
-  - `- 外部调研结论`
-- [ ] It records quality evidence explicitly:
-  - `- 内部证据清单：`
-  - `- 外部证据清单：`
-  - `- 事实清单：`
-  - `- 证据映射：`
+- [ ] Each handoff includes:
+  - `- 内部调研范围：`
+  - `- 内部调研结论：`
+  - `- 外部调研范围：`
+  - `- 外部调研来源：`
+  - `- 官方事实结论：`
+  - `- 主流方案结论：`
+  - `- 最佳实现参考结论：`
+  - `- 是否发现新增外部差异：`
   - `- 推断说明：`
   - `- 未验证项：`
   - `- 需要用户确认：`
   - `- 推荐方案：`
   - `- 推荐原因：`
   - `- 主要权衡：`
-- [ ] It records required handoff metadata explicitly:
-  - `- 当前角色标识：`
-  - `- 当前交接标识：`
-  - `- 需求标识：`
-  - `- 项目落点：`
-  - `- 下一角色标识：`
-- [ ] 非 `complete` 阶段校验的是当前文档的最新 handoff block；`complete` 阶段校验的是同一需求最近的完整 8 角色链 block
-- [ ] 被校验的 handoff block `下一角色标识` matches the validated stage transition
-- [ ] 被校验的 handoff block `当前角色标识` matches the validated stage transition
-- [ ] The current `当前角色标识` content does not violate its role-specific禁止事项
-- [ ] The handoff does not use weak phrases such as “查过了” without evidence
-- [ ] `当前角色标识` and `下一角色标识` match the approved role transition
-- [ ] `当前交接标识` is unique and includes the same `需求标识`
-- [ ] `内部证据清单` uses `EVID-IN-* -> 文件路径` format and points to real files inside the approved project path
-- [ ] `外部证据清单` uses `EVID-EX-* -> 本地快照路径 | URL` format when external research is required
-- [ ] 外部证据快照文件存在且位于批准项目路径内
-- [ ] `事实清单` uses `FACT-* -> 证据摘录：摘录内容` format
-- [ ] `证据映射` binds each fact ID to `EVID-*::关键词::摘录`
-- [ ] 非 `complete` 阶段的 gate 一次只校验一个 `--handoff-doc`
-- [ ] `implementer` 阶段校验完整前链：`requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer`
-- [ ] 如果当前被校验 block 的 `当前角色标识` 是 `tester`，则必须记录：
+
+### 3. Stage Rules
+
+- [ ] `implementer` gate only runs when:
+  - `workflow_current_stage: solution-designer`
+  - `workflow_solution_approved: 1`
+  - `workflow_pre_chain_verified: 1`
+  - and the full pre-implementation chain exists
+- [ ] `reviewer` gate only runs when:
+  - `workflow_current_stage: implementer`
+  - `workflow_implementer_passed: 1`
+- [ ] `tester` gate only runs when:
+  - `workflow_current_stage: reviewer`
+  - `workflow_reviewer_passed: 1`
+- [ ] `knowledge-keeper` gate only runs when:
+  - `workflow_current_stage: tester`
+  - `workflow_tester_passed: 1`
+- [ ] `complete` gate only runs when:
+  - `workflow_current_stage: knowledge-keeper`
+  - `workflow_knowledge_keeper_passed: 1`
+  - and the full 8-role chain exists in one project document
+
+### 4. Content Quality
+
+- [ ] If the current handoff is `solution-designer -> implementer`, it records `- 用户方案批准：`
+- [ ] If the current handoff is `tester`, it records:
   - `- 运行时验证：`
   - `- 外部依赖验证：`
   - `- 未验证原因：`
-- [ ] 如果功能依赖外部 API、浏览器运行时或网络请求，测试结论不能只基于静态检查；必须完成真实成功路径验证，或明确记录未验证原因
-- [ ] 如果外部成功路径被标记为“已真实验证”，则 `外部依赖验证` 必须绑定到一个具体 `用例 N`，且该用例在 `【测试结果】` 中为 `pass`
-- [ ] 如果当前角色需要停下来请求用户确认，则 handoff 必须明确记录 `需要用户确认：是`，并给出 `推荐方案 / 推荐原因 / 主要权衡`
-- [ ] 如果当前角色不需要用户确认，则 handoff 必须明确记录 `需要用户确认：否`
-- [ ] 如果当前 handoff 是 `solution-designer -> implementer`，必须记录 `用户方案批准：` 且内容明确表示用户已批准；否则不得进入 implementer
-- [ ] 如果当前被校验 block 的 `当前角色标识` 是 `reviewer`，则 review 至少覆盖：
-  - 业务正确性
-  - 改动范围是否合理
-  - 代码逻辑是否清晰
-  - 架构和边界是否被破坏
-  - 状态管理和数据流
-  - 异常处理和兜底
-  - 性能和资源问题
-  - 可测试性和可回归性
-  - AI 生成风险检查
-- [ ] 如果当前被校验 block 的 `当前角色标识` 是 `knowledge-keeper`，则必须记录：
+- [ ] If the current handoff is `knowledge-keeper`, it records:
   - `- 需求复盘结论：`
   - `- 自我审查结论：`
   - `- 自我纠错项：`
-  - `- 流程复盘结论：`
-  - `- 值得保留的做法：`
-  - `- 需要修正或移除的规则：`
-  - `- 规则更新状态：`
-- [ ] 如果 knowledge-keeper 记录了真实流程/规则问题，则 `规则更新状态` 不能写“无/无需更新”；必须记录已更新或明确阻塞原因
 
-### 3. Project Placement
+### 5. Completion Rule
 
-- [ ] The approved project folder or landing zone is explicit
-- [ ] New-project work is not scattered at repository root
-- [ ] Existing-project work has an approved existing path or approved subfolder
-- [ ] For existing-project work, documentation state is explicit: `documented` or `backfilled`
-- [ ] If the existing project is already documented, the exact documentation artifact is named
-- [ ] That documentation artifact declares the same approved `项目落点`
-- [ ] That documentation artifact is stored inside the approved project path
-- [ ] If the existing project required backfill, the backfill document exists and is recorded as a workflow artifact
-- [ ] That backfill document declares the same approved `项目落点`
-- [ ] That backfill document is stored inside the approved project path
-
-### 4. Implementation Scope
-
-- [ ] Target files or directories are named explicitly
-- [ ] The targets are inside the approved project path
-- [ ] The implementer is not coding outside the approved scope
-
-### 5. Record The Fallback
-
-- [ ] The task document records that automatic gate execution was unavailable
-- [ ] The task document records that this manual checklist was used instead
-
-## Completion Rule
-
-Implementation may start only when every applicable checkbox is complete.
-
-Before treating a requirement as finished, confirm that the final block in the validated full 8-role chain routes to:
-
-- `- 下一角色：无`
-
-Also confirm that the validated full 8-role chain exists in one task document and is ordered:
-
-- requirement-analyst handoff -> `- 下一角色：架构师`
-- architect handoff -> `- 下一角色：代码调查员`
-- code-investigator handoff -> `- 下一角色：方案设计师`
-- solution-designer handoff -> `- 下一角色：开发者`
-- implementer handoff -> `- 下一角色：审核员`
-- reviewer handoff -> `- 下一角色：测试员`
-- tester handoff -> `- 下一角色：知识归档员`
-- knowledge-keeper handoff -> `- 下一角色：无`
-- all eight role handoffs share the same `需求标识`
-- completion is not run with only implementer/reviewer/tester/knowledge-keeper handoff documents
-- all eight role handoffs share the same `项目落点`
-- the terminal archive records workflow retrospective learnings and rule-update status
+- [ ] Before setting `workflow_completion_passed: 1`, run the completion gate
+- [ ] `workflow_completion_passed` stays `0` until completion actually passes
+- [ ] After completion passes, AI may update:
+  - `workflow_current_stage: complete`
+  - `workflow_completion_passed: 1`

@@ -17,11 +17,12 @@ Capture reusable knowledge after implementation and validation are complete.
 
 ## Workflow
 
-1. Read the validated design, review, and test outcomes.
-2. Distinguish facts from inference.
-3. Summarize symptom, root cause, and fix.
-4. Record reusable lessons and future watch-outs.
-5. Produce a structured terminal handoff.
+1. Complete internal research on the validated design, review, test outcomes, and current project document.
+2. Complete external research and record official facts, mainstream approaches, and mature reusable patterns relevant to archival conclusions.
+3. Distinguish facts from inference.
+4. Summarize symptom, root cause, and fix.
+5. Record reusable lessons and future watch-outs.
+6. Produce a structured terminal handoff.
 
 ## Output Contract
 
@@ -40,7 +41,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, requirement retrospective, self-review, self-correction, workflow retrospective, retained practices, rule-fix candidates, rule-update status, and any repair classification required by the pipeline contract.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, confirmation, requirement retrospective, self-review, and self-correction required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. After the archive handoff is complete, update `workflow_current_stage: knowledge-keeper` and `workflow_knowledge_keeper_passed: 1`. Only after the completion gate passes may AI update `workflow_current_stage: complete` and `workflow_completion_passed: 1`.
 
 Under `【交付物】`, include:
 
@@ -70,4 +71,4 @@ In `【交接给下一个角色】`, set:
 - `下一角色：无【当前需求已完成完整流程】`
 - `可用输入：` current requirement's complete handoff chain
 - `非目标：` continuing into a new requirement
-- `完成条件：` completion gate can validate the closing chain
+- `完成条件：` completion gate can validate the full 8-role chain

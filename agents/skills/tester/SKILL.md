@@ -17,11 +17,12 @@ Prove whether the change actually works. Reproduce the target behavior, validate
 
 ## Workflow
 
-1. Read the design and review handoffs.
-2. Define normal, abnormal, and boundary test cases.
-3. Run available tests or document blockers.
-4. Record pass, fail, or blocked with evidence.
-5. Hand off only validated conclusions.
+1. Complete internal research on the design handoff, review handoff, current project document, and available validation paths.
+2. Complete external research and record official facts, mainstream approaches, and mature validation patterns relevant to testing.
+3. Define normal, abnormal, and boundary test cases.
+4. Run available tests or document blockers.
+5. Record pass, fail, or blocked with evidence.
+6. Hand off only validated conclusions.
 
 ## Output Contract
 
@@ -40,7 +41,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, runtime verification, external-dependency verification, and unverified-reason labels required by the pipeline contract.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, confirmation, runtime verification, external-dependency verification, and unverified-reason labels required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. After tester handoff is complete, update `workflow_current_stage: tester` and `workflow_tester_passed: 1`.
 
 Under `【交付物】`, include:
 

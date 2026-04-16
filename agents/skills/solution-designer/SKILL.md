@@ -17,11 +17,12 @@ Design a concrete solution from validated facts. The design must explain why the
 
 ## Workflow
 
-1. Read the architect and investigator handoffs.
-2. Identify the root cause layer.
-3. Choose the minimum viable change.
-4. Enumerate impact range and fallback behavior.
-5. Produce a strict implementation handoff.
+1. Complete internal research from the architect handoff, investigator handoff, and current project document.
+2. Complete external research and record official facts, mainstream approaches, and mature reference implementations relevant to the design.
+3. Identify the root cause layer.
+4. Choose the minimum viable change.
+5. Enumerate impact range and fallback behavior.
+6. Produce a strict implementation handoff.
 
 ## Output Contract
 
@@ -40,7 +41,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, migration, compatibility, and `用户方案批准` labels required by the pipeline contract. A handoff that routes to implementer must record explicit user approval.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, confirmation, migration, compatibility, and `用户方案批准` labels required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. A handoff that routes to implementer must record explicit user approval. After approval is explicit, AI must set `workflow_solution_approved: 1` and `workflow_pre_chain_verified: 1`.
 
 Under `【交付物】`, include:
 

@@ -17,11 +17,13 @@ Review the implementation for correctness and discipline. Your primary output is
 
 ## Workflow
 
-1. Compare the implementation against the approved design.
-2. Inspect changed code for logic risks and regression hazards.
-3. Flag scope drift and missing safeguards.
-4. Summarize residual risk even when no bug is found.
-5. Hand off concrete risks for testing.
+1. Complete internal research on the approved design, current project document, and changed code.
+2. Complete external research and record official facts, mainstream approaches, and mature patterns relevant to review judgment.
+3. Compare the implementation against the approved design.
+4. Inspect changed code for logic risks and regression hazards.
+5. Flag scope drift and missing safeguards.
+6. Summarize residual risk even when no bug is found.
+7. Hand off concrete risks for testing.
 
 ## Output Contract
 
@@ -40,7 +42,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, and confirmation labels required by the pipeline contract. Use the role template so review findings and residual risks remain gate-checkable.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, and confirmation labels required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. Use the role template so review findings and residual risks remain gate-checkable. After review handoff is complete, update `workflow_current_stage: reviewer` and `workflow_reviewer_passed: 1`.
 
 Under `【交付物】`, include:
 

@@ -11,8 +11,16 @@ Prevent development from depending on memory or guesswork when working inside an
 Use this playbook when:
 
 - the project already exists
-- there is no usable README, task document, or handoff chain for the current work
+- there is no usable README, project document, or handoff chain for the current work
 - the current change cannot be safely placed using existing documentation
+
+If workflow needs to read and continue using a project document, and that document still uses the older pre-frontmatter workflow shape, first run:
+
+```bash
+python3 agents/scripts/upgrade_legacy_project_doc.py --project-doc <doc> --write
+```
+
+Then continue with the backfill or normal workflow checks using the upgraded project document.
 
 ## Principle
 
@@ -46,7 +54,7 @@ Do not infer intent without evidence.
 
 ### 2. Create The Current Task Document
 
-Write a current task document that at least records:
+Write a current project document that at least records:
 
 - what is being changed
 - where it is expected to land

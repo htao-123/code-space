@@ -17,11 +17,13 @@ Turn the user request into a precise scope definition. Do not design architectur
 
 ## Workflow
 
-1. Restate the problem, target scenario, inputs, and outputs.
-2. Split the request into independently implementable sub-functions.
-3. Mark what is in scope and out of scope.
-4. List ambiguity and misunderstanding risks.
-5. Produce the handoff in the required format.
+1. Complete internal research on the current request, existing project context, and current project document.
+2. Complete external research and record whether any new outside difference affects the requirement framing.
+3. Restate the problem, target scenario, inputs, and outputs.
+4. Split the request into independently implementable sub-functions.
+5. Mark what is in scope and out of scope.
+6. List ambiguity and misunderstanding risks.
+7. Produce the handoff in the required format.
 
 ## Output Contract
 
@@ -40,7 +42,7 @@ Always output these sections in order:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, and confirmation labels required by the pipeline contract. Use the role template when in doubt.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, and confirmation labels required by the pipeline contract. `【调研发现】` must explicitly record internal research, external research, official facts, mainstream approaches, best-practice/reference implementation conclusions, and whether any new outside difference was found. Also initialize project-document frontmatter with `requirement_id`, `workflow_project_type`, `workflow_work_type`, `workflow_doc_backfilled`, all workflow flags at `0`, and `workflow_current_stage: requirement-analyst`.
 
 Under `【交付物】`, include exactly:
 

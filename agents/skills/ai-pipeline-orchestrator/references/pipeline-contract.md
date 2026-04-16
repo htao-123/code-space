@@ -18,41 +18,31 @@ No role may merge with another role.
 No agent may replace this workflow with a self-invented process.
 No agent may decide that the workflow is optional just because the task feels simple.
 No new project or substantial subproject may be scattered across repository root when it should live in a dedicated folder.
-No implementation may begin until the current task is documented in a handoff or task document.
+No implementation may begin until the current project is documented in a project document.
 No agent should pause for redundant confirmation when the next workflow step is already determined by the current handoff state.
 Every requirement must run through the full workflow until `knowledge-keeper`, unless the user explicitly abandons the workflow.
 User-facing workflow communication should use Chinese role names and Chinese progression language.
-For roles 2-8, research is mandatory before formal output.
+For every role, internal research and external research are mandatory before formal output.
 If an existing project lacks usable documentation, minimum documentation backfill is mandatory before normal development continues.
 Bug fixes must use the same workflow under explicit `bugfix` mode; they may not bypass roles as “small patches”.
 When historical data and the new version's data structure diverge, the default response is a migration script, not long-lived compatibility handling in runtime code.
 Every completed requirement must include a requirement retrospective.
 Every completed requirement must include self-review and self-correction records in the terminal `knowledge-keeper` handoff.
-Every completed requirement must also include a workflow retrospective that records whether this workflow exposed any rule or process issue.
-Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise the terminal archive should record that no rule update was needed.
-Completed role handoff blocks may not be silently rewritten to make a failed gate pass.
-Every gate failure repair must be classified before the gate is rerun:
-
-- `format-only`: whitespace, list shape, separator, or mechanically equivalent formatting changes.
-- `evidence-correction`: evidence id, excerpt, source, or mapping correction that changes what the gate can verify.
-- `content-regeneration`: role conclusion, requirement, design, implementation, review, test, approval, or retrospective content must be regenerated.
-- `workflow-repair`: the previous role did not actually complete or the role chain was skipped/merged.
-
-Only `format-only` repair may use `normalize_handoff_format.py` directly.
-Evidence, content, and workflow repair must append an explicit correction record or route back to the responsible role.
-When `normalize_handoff_format.py --write --repair-type format-only --ack-format-only` writes a file, it must append a task-level `format-only` repair record.
-Implementation may begin only after the full pre-implementation chain has been validated: `requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer`.
-Completion may pass only after the full chain has been validated: `requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer -> reviewer -> tester -> knowledge-keeper -> terminal`.
-Repair records must be written as task-level `## Repair Record` blocks with:
-
-```md
-- 修复类型：
-- 修复处理：
-- 负责角色：
-- 是否改变需求含义：
-- 是否改变实现行为：
-- 后续验证：
-```
+If a real workflow-rule or process problem is exposed during project execution, handle it as a separate rule-system change under `agents/` instead of recording workflow governance fields in the project document.
+That rule-side governance record must use the fixed `## Rule Governance` section in `agents/docs/context/workflow-system-context.md`.
+Workflow status is declared in project-document frontmatter, not by brittle prose excerpts.
+AI may write a workflow status field to `1` only after the rule-defined condition has already been satisfied.
+When this workflow is used on a real project, that project's current project document must live inside the real project path.
+When modifying the rule system itself under `agents/`, do not create or retain rule-side workflow history documents; update current rules directly.
+Implementation may begin only after the project document declares:
+- `workflow_current_stage: solution-designer`
+- `workflow_solution_approved: 1`
+- `workflow_pre_chain_verified: 1`
+Completion may pass only after the project document declares:
+- `workflow_current_stage: knowledge-keeper`
+- `workflow_knowledge_keeper_passed: 1`
+and the full chain can be replayed from requirement-analyst through knowledge-keeper.
+`agents/docs/` is reserved for current reusable context, not for rule-side workflow history.
 
 ## Mandatory Handoff Shape
 
@@ -86,7 +76,6 @@ Inside each handoff block, also require these metadata labels:
 - 当前角色标识：
 - 当前交接标识：
 - 需求标识：
-- 项目落点：
 - 下一角色标识：
 ```
 
@@ -106,14 +95,12 @@ Bugfix downstream stages must also carry:
 - 回归检查范围：
 ```
 
-Inside each handoff block, also require these quality labels:
+Inside each handoff block, keep only the project-facing quality labels that remain useful to humans:
 
 ```md
-- 内部证据清单：
-- 外部证据清单：
-- 事实清单：
-- 证据映射：
-- 推断说明：
+- 是否需要外部调研：
+- 外部调研来源：
+- 外部调研结论：
 - 未验证项：
 - 需要用户确认：
 - 推荐方案：
@@ -121,16 +108,16 @@ Inside each handoff block, also require these quality labels:
 - 主要权衡：
 ```
 
-Quality evidence expectations:
+Frontmatter workflow expectations:
 
-- `当前角色标识` 和 `下一角色标识` 是 gate 进行角色流转校验的主字段。
-- `当前角色` 仅用于用户可读展示，不参与 gate 主校验。
-- `当前交接标识` 必须唯一，且必须包含相同的 `需求标识`。
-- `事实清单` 必须使用 `FACT-001 -> 证据摘录：摘录内容` 逐条列出。
-- `事实清单` 只允许记录证据摘录，不允许夹带未被映射证据直接支撑的额外结论。
-- `内部证据清单` 使用 `EVID-IN-001 -> path/to/file` 形式。
-- `外部证据清单` 使用 `EVID-EX-001 -> 本地快照路径 | https://...` 形式。
-- `证据映射` 使用 `FACT-001 -> EVID-IN-001::keyword::摘录` 或 `FACT-001 -> EVID-EX-001::anchor::摘录` 形式，为每条事实绑定证据。
+- `requirement_id` is required and must match every handoff block `需求标识`.
+- `workflow_project_type` must be `new-project` or `existing-project`.
+- `workflow_work_type` must be `feature`, `bugfix`, or `task`.
+- `workflow_doc_backfilled` must be `0` or `1`.
+- `workflow_current_stage` must be one of:
+  `requirement-analyst`, `architect`, `code-investigator`, `solution-designer`, `implementer`, `reviewer`, `tester`, `knowledge-keeper`, `complete`.
+- `workflow_solution_approved`, `workflow_pre_chain_verified`, `workflow_implementer_passed`, `workflow_reviewer_passed`, `workflow_tester_passed`, `workflow_knowledge_keeper_passed`, and `workflow_completion_passed` must be `0` or `1`.
+- AI must not write any of those fields to `1` before the corresponding rule condition is actually satisfied.
 
 ## Allowed Transition Table
 
@@ -161,7 +148,7 @@ The next role may not:
 - invent a shortcut workflow outside this contract
 - combine two role responsibilities "for convenience"
 - begin implementing a new project before its folder placement is defined
-- rely on unstated memory when the current task document has not been created or updated
+- rely on unstated memory when the current project document has not been created or updated
 - skip required internal research
 - skip required external verification when current facts may have changed
 - continue coding in an existing undocumented project before minimum documentation has been backfilled
@@ -249,11 +236,6 @@ The next role may not:
 - records validated lessons
 - marks remaining uncertainty
 - records requirement retrospective, self-review, and self-correction
-- records workflow retrospective learnings
-- records which workflow rules or practices should be retained
-- records which workflow rules or practices should be corrected or removed
-- records whether a rule update was required and whether it was completed
-- if no workflow rule problem was exposed, records that no rule update was needed
 - in bugfix mode, archives recurrence-prevention notes and regression learnings
 
 ## Stop Conditions
@@ -267,13 +249,13 @@ The pipeline must stop when:
 - implementation or review evidence is missing for later stages
 - any agent attempts to improvise an alternative process outside this contract
 - a new project is being created but no dedicated folder has been defined yet
-- the current task has no up-to-date handoff or planning document
+- the current work has no up-to-date project document or planning handoff
 - required research for the current role has not been completed
 - external verification is required but has not been performed
 - an existing project lacks minimum usable documentation and backfill has not been completed
 - bugfix work lacks a recorded repro path, expected/actual result, root cause summary, or regression scope where required
 - historical-data/schema mismatch exists but no migration decision or migration artifact has been recorded
-- workflow retrospective fields are missing from the terminal archive
+- requirement retrospective, self-review, or self-correction fields are missing from the terminal archive
 
 The pipeline should not stop merely to request confirmation when:
 
@@ -295,7 +277,7 @@ For this approval stop:
 - include the implementation scope, target files/modules, verification plan, and main tradeoffs
 - ask the user to approve, reject, or request changes
 - record `需要用户确认：是` in the solution handoff
-- record the user's approval in the task document or next handoff before implementation begins
+- record the user's approval in the project document or next handoff before implementation begins
 - the implementer gate must fail unless the `solution-designer` handoff contains `用户方案批准` with explicit approval
 
 When the pipeline does need to stop for confirmation because a real decision remains open:
@@ -348,7 +330,7 @@ For work inside an existing project:
 
 For every active development task:
 
-1. write or update the current task document before implementation
+1. write or update the current project document before implementation
 2. keep the document aligned with the latest handoff state
 3. if the plan, scope, or landing zone changes, update the document first
 
@@ -372,40 +354,35 @@ Follow the backfill process in:
 
 This backfill may be created during `requirement-analyst` or `architect`, but downstream roles may not proceed until it exists.
 
-## Handoff Normalization
-
-When the gate is blocked only by handoff formatting shape rather than missing business content:
-
-1. run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write --repair-type format-only --ack-format-only`
-2. keep the task-level `format-only` repair record appended by the normalizer
-3. re-run the workflow gate
-4. only treat the requirement as blocked if normalization does not resolve the issue
-
-Normalization must not add or change facts, evidence meaning, user approval, role conclusions, root-cause summaries, test outcomes, or retrospective conclusions.
-If the gate failure requires those changes, record a repair type other than `format-only` and append a correction record or return to the responsible role.
-
 ## Research-First Rule
 
-For roles 2-8:
+For every role:
 
 1. complete internal project research before formal output
-2. complete external research when current outside facts could affect correctness
+2. complete external research before formal output
 3. record the verified inputs and research findings in the role output
 
 Internal research includes:
 
-- current task document
+- current project document
 - prior handoffs
 - repository files
 - existing implementation behavior
 
-External research is mandatory when the work depends on:
+External research should always be completed. At minimum, verify whether any current outside facts, mainstream approaches, or mature implementations affect the role's output, including:
 
 - third-party libraries or frameworks that may have changed
 - browser or platform behavior
 - SEO, deployment, distribution, or compatibility rules
 - APIs, standards, or toolchain behavior that may be outdated
 
+When external research is required, cover up to three layers as needed by the role:
+
+1. official current facts and rules
+2. current mainstream approaches used by the ecosystem
+3. mature best-practice or reference implementations that inform a high-quality solution
+
+If external research finds no meaningful new difference, record that conclusion explicitly.
 Do not rely on memory alone when there is meaningful risk of outdated information.
 
 Follow the external research process in:
@@ -439,25 +416,17 @@ python3 agents/scripts/check_workflow_gate.py --help
 
 Use it to verify:
 
-- current task document exists
-- project path or landing zone is defined
+- current project document exists
+- required frontmatter workflow fields exist
 - handoff documents contain mandatory sections
 - handoff documents contain the required Chinese sublabels
-- handoff documents record external research explicitly
-- handoff documents declare current role id, handoff id, requirement identifier, and project path explicitly
-- handoff documents declare evidence quality fields explicitly
+- handoff documents record current role id, handoff id, and requirement identifier explicitly
+- handoff documents record required research and role-specific quality labels explicitly
 - for non-`complete` stages, the current document's latest handoff block routes to the expected next role id for the validated stage
 - for non-`complete` stages, the current document's latest handoff block declares the expected current role id for the validated stage
 - for `complete` stage, the validated full handoff chain routes through all expected role ids from `requirement-analyst` through `knowledge-keeper` in order
-- implementation targets stay inside the approved project path
-- existing-project work declares documentation state and any required backfill artifact
-- existing-project work points to the actual documentation artifact used for that declaration
-- documentation artifacts declare the same approved project path
-- documentation artifacts are stored inside the approved project path
-- internal evidence files resolve to real files inside the approved project path
-- external evidence items declare both a concrete traceable URL and a verifiable local snapshot when external research is required
-- evidence mappings bind each verified fact identifier to a real evidence item plus a searchable keyword and excerpt
-- fact lines must be excerpt-only records, not mixed fact-plus-inference sentences
+- implementation targets stay inside the repository and match the approved scope
+- existing-project work has completed required documentation backfill before downstream roles continue
 - bugfix-mode handoffs include symptom, repro, expected/actual result, root cause summary, and regression scope when the validated stage requires them
 
 ## Enforcement Fallback Rule
@@ -475,11 +444,10 @@ The workflow must not skip enforcement just because automation is unavailable.
 Implementation may begin only after one of these is true:
 
 - the automatic gate passes
-- the manual checklist has been completed and recorded in the task document
+- the manual checklist has been completed and recorded in the project document
 
 Use stage-specific gate validation as the workflow advances, and use the completion gate before declaring a requirement finished.
-Use the implementation gate as a full pre-implementation chain replay, not as a latest-block-only approval check.
-Use the completion gate as a full 8-role chain replay from requirement-analyst to knowledge-keeper.
-The completion gate must receive one task document containing the full 8-role chain and must reject calls that provide only implementer/reviewer/tester/knowledge-keeper handoff documents.
-The completion gate should also verify that all eight role handoffs share the same requirement identifier and approved project path.
-The workflow gate should run the handoff quality checker unconditionally during normal workflow execution.
+The gate reads project-document frontmatter first, then validates that handoff content supports the declared status.
+The implementation gate validates the full pre-implementation chain.
+The completion gate validates the full 8-role chain in one project document and rejects partial closing-only inputs.
+The workflow gate should run the handoff quality checker during normal workflow execution.

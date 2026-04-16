@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Workflow gate checker for the AI engineering pipeline.
+Workflow gate checker for the frontmatter-based AI engineering pipeline.
 """
 
 from __future__ import annotations
@@ -30,116 +30,66 @@ REQUIRED_HANDOFF_SUBLABELS = [
     "- 完成条件：",
 ]
 
-REQUIRED_RESEARCH_LABELS = [
-    "- 是否需要外部调研",
-    "- 外部调研来源",
-    "- 外部调研结论",
-]
-
-REQUIRED_CONFIRMATION_LABELS = [
-    "- 需要用户确认：",
-    "- 推荐方案：",
-    "- 推荐原因：",
-    "- 主要权衡：",
-]
-
 REQUIRED_METADATA_LABELS = [
     "- 当前角色标识：",
     "- 当前交接标识：",
     "- 需求标识：",
-    "- 项目落点：",
     "- 下一角色标识：",
 ]
 
-BUGFIX_REQUIRED_LABELS = [
-    "- 问题类型：",
-    "- 复现步骤：",
-    "- 预期结果：",
-    "- 实际结果：",
+STAGE_ORDER = [
+    "requirement-analyst",
+    "architect",
+    "code-investigator",
+    "solution-designer",
+    "implementer",
+    "reviewer",
+    "tester",
+    "knowledge-keeper",
+    "complete",
 ]
 
-BUGFIX_STAGE_EXTRA_LABELS = {
-    "implementer": ["- 根因摘要：", "- 回归检查范围："],
-    "reviewer": ["- 根因摘要：", "- 回归检查范围："],
-    "tester": ["- 根因摘要：", "- 回归检查范围："],
-    "knowledge-keeper": ["- 根因摘要：", "- 回归检查范围："],
-    "complete": ["- 根因摘要：", "- 回归检查范围："],
-}
+FRONTMATTER_REQUIRED_FIELDS = [
+    "requirement_id",
+    "workflow_project_type",
+    "workflow_work_type",
+    "workflow_doc_backfilled",
+    "workflow_current_stage",
+    "workflow_solution_approved",
+    "workflow_pre_chain_verified",
+    "workflow_implementer_passed",
+    "workflow_reviewer_passed",
+    "workflow_tester_passed",
+    "workflow_knowledge_keeper_passed",
+    "workflow_completion_passed",
+]
 
-ROLE_SPECIFIC_REQUIRED_LABELS = {
-    "architect": [
-        "- 历史数据结构状态：",
-        "- 迁移脚本要求：",
-    ],
-    "code-investigator": [
-        "- 历史数据结构状态：",
-        "- 实际数据缺口：",
-    ],
-    "solution-designer": [
-        "- 历史数据结构状态：",
-        "- 数据迁移策略：",
-        "- 长期兼容处理结论：",
-        "- 用户方案批准：",
-    ],
-    "implementer": [
-        "- 历史数据结构状态：",
-        "- 迁移实现状态：",
-        "- 兼容分支状态：",
-    ],
-    "tester": [
-        "- 运行时验证：",
-        "- 外部依赖验证：",
-        "- 未验证原因：",
-    ],
-    "knowledge-keeper": [
-        "- 需求复盘结论：",
-        "- 自我审查结论：",
-        "- 自我纠错项：",
-        "- 流程复盘结论：",
-        "- 值得保留的做法：",
-        "- 需要修正或移除的规则：",
-        "- 规则更新状态：",
-    ],
-}
+FLAG_FIELDS = [
+    "workflow_doc_backfilled",
+    "workflow_solution_approved",
+    "workflow_pre_chain_verified",
+    "workflow_implementer_passed",
+    "workflow_reviewer_passed",
+    "workflow_tester_passed",
+    "workflow_knowledge_keeper_passed",
+    "workflow_completion_passed",
+]
 
-STAGE_EXPECTATIONS = {
-    "implementer": {
-        "current_role_ids": ["solution-designer"],
-        "next_role_ids": ["implementer"],
-    },
-    "reviewer": {
-        "current_role_ids": ["implementer"],
-        "next_role_ids": ["reviewer"],
-    },
-    "tester": {
-        "current_role_ids": ["reviewer"],
-        "next_role_ids": ["tester"],
-    },
-    "knowledge-keeper": {
-        "current_role_ids": ["tester"],
-        "next_role_ids": ["knowledge-keeper"],
-    },
-    "complete": {
-        "current_role_ids": ["implementer", "reviewer", "tester", "knowledge-keeper"],
-        "next_role_ids": ["reviewer", "tester", "knowledge-keeper", "terminal"],
-    },
-}
-
-PRE_IMPLEMENTATION_CHAIN_CURRENT_ROLE_IDS = [
+PRE_CHAIN_CURRENT = [
     "requirement-analyst",
     "architect",
     "code-investigator",
     "solution-designer",
 ]
 
-PRE_IMPLEMENTATION_CHAIN_NEXT_ROLE_IDS = [
+PRE_CHAIN_NEXT = [
     "architect",
     "code-investigator",
     "solution-designer",
     "implementer",
 ]
 
-FULL_CHAIN_CURRENT_ROLE_IDS = [
+FULL_CHAIN_CURRENT = [
     "requirement-analyst",
     "architect",
     "code-investigator",
@@ -150,7 +100,7 @@ FULL_CHAIN_CURRENT_ROLE_IDS = [
     "knowledge-keeper",
 ]
 
-FULL_CHAIN_NEXT_ROLE_IDS = [
+FULL_CHAIN_NEXT = [
     "architect",
     "code-investigator",
     "solution-designer",
@@ -161,12 +111,34 @@ FULL_CHAIN_NEXT_ROLE_IDS = [
     "terminal",
 ]
 
-ALLOWED_REPAIR_TYPES = {
-    "format-only",
-    "evidence-correction",
-    "content-regeneration",
-    "workflow-repair",
+STAGE_EXPECTED_CURRENT_ROLE = {
+    "implementer": "solution-designer",
+    "reviewer": "implementer",
+    "tester": "reviewer",
+    "knowledge-keeper": "tester",
 }
+
+PROJECT_TYPES = {"new-project", "existing-project"}
+WORK_TYPES = {"feature", "bugfix", "task"}
+
+BUGFIX_BASE_LABELS = [
+    "- 问题类型：",
+    "- 复现步骤：",
+    "- 预期结果：",
+    "- 实际结果：",
+]
+
+BUGFIX_DOWNSTREAM_LABELS = [
+    "- 根因摘要：",
+    "- 回归检查范围：",
+]
+
+RULE_GOVERNANCE_REQUIRED_LABELS = [
+    "- 流程复盘结论：",
+    "- 值得保留的做法：",
+    "- 需要修正或移除的规则：",
+    "- 规则更新状态：",
+]
 
 
 def repo_relative(path: Path, repo_root: Path) -> str:
@@ -180,15 +152,24 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def extract_last_handoff_block(text: str) -> str:
-    positions = [match.start() for match in re.finditer(re.escape("【角色结论】"), text)]
-    if not positions:
-        return ""
-    start = positions[-1]
-    next_heading = text.find("\n## ", start)
-    if next_heading == -1:
-        return text[start:]
-    return text[start:next_heading]
+def extract_frontmatter(text: str) -> tuple[dict[str, str], str]:
+    if not text.startswith("---\n"):
+        return {}, text
+    end = text.find("\n---\n", 4)
+    if end == -1:
+        return {}, text
+    frontmatter_text = text[4:end]
+    body = text[end + 5 :]
+    data: dict[str, str] = {}
+    for raw_line in frontmatter_text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        data[key.strip()] = value.strip().strip("'\"")
+    return data, body
 
 
 def extract_all_handoff_blocks(text: str) -> list[str]:
@@ -205,31 +186,210 @@ def extract_all_handoff_blocks(text: str) -> list[str]:
     return blocks
 
 
+def extract_last_handoff_block(text: str) -> str:
+    blocks = extract_all_handoff_blocks(text)
+    return blocks[-1] if blocks else ""
+
+
 def extract_label_value(text: str, label: str) -> str | None:
-    pattern = rf"(?m)^{re.escape(label)}\s*(.+?)\s*$"
+    pattern = rf"(?m)^\s*{re.escape(label)}\s*(.+?)\s*$"
     match = re.search(pattern, text)
     if match is None:
         return None
     return match.group(1).strip()
 
 
-def find_latest_role_chain(
-    blocks: list[str],
-    current_role_ids: list[str],
-    next_role_ids: list[str],
-) -> list[int]:
+def check_file_exists(path: Path, label: str, errors: list[str], repo_root: Path) -> None:
+    if not path.exists():
+        errors.append(f"{label} not found: {repo_relative(path, repo_root)}")
+    elif path.is_dir():
+        errors.append(f"{label} is a directory, expected file: {repo_relative(path, repo_root)}")
+
+
+def ensure_within_repo(path: Path, repo_root: Path, label: str, errors: list[str]) -> None:
+    try:
+        path.resolve().relative_to(repo_root.resolve())
+    except ValueError:
+        errors.append(f"{label} must be inside repository root: {path}")
+
+
+def path_is_within(path: Path, ancestor: Path) -> bool:
+    try:
+        path.resolve().relative_to(ancestor.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def is_rule_system_change(repo_root: Path, task_doc: Path, target_paths: list[Path]) -> bool:
+    agents_root = (repo_root / "agents").resolve()
+    if target_paths:
+        return all(path_is_within(target, agents_root) for target in target_paths)
+    return path_is_within(task_doc, agents_root)
+
+
+def project_doc_scope(task_doc: Path, repo_root: Path) -> Path:
+    scope = task_doc.resolve().parent
+    if scope.name.lower() in {"docs", "doc", "documentation"} and scope != repo_root.resolve():
+        return scope.parent
+    return scope
+
+
+def validate_project_doc_location(
+    repo_root: Path,
+    task_doc: Path,
+    target_paths: list[Path],
+    rule_system_change: bool,
+    errors: list[str],
+) -> None:
+    agents_root = (repo_root / "agents").resolve()
+    if rule_system_change:
+        return
+    if path_is_within(task_doc, agents_root):
+        errors.append(
+            "Real-project current project documents must not live under agents/; "
+            f"move it into the real project path: {repo_relative(task_doc, repo_root)}"
+        )
+    if not target_paths:
+        return
+    doc_scope = project_doc_scope(task_doc, repo_root)
+    if doc_scope == repo_root.resolve():
+        errors.append(
+            "Real-project current project document must live inside the real project tree, "
+            f"not at repository root: {repo_relative(task_doc, repo_root)}"
+        )
+        return
+    aligned = False
+    for target in target_paths:
+        target_scope = target.resolve() if target.is_dir() else target.resolve().parent
+        if path_is_within(target_scope, doc_scope) or path_is_within(doc_scope, target_scope):
+            aligned = True
+            break
+    if not aligned:
+        errors.append(
+            "Current project document must live in the same project tree as at least one validated target path: "
+            f"{repo_relative(task_doc, repo_root)}"
+        )
+
+
+def validate_handoff_docs(
+    repo_root: Path,
+    handoff_docs: list[Path],
+    errors: list[str],
+) -> None:
+    for doc in handoff_docs:
+        check_file_exists(doc, "Handoff document", errors, repo_root)
+        ensure_within_repo(doc, repo_root, "Handoff document", errors)
+
+
+def validate_frontmatter(
+    frontmatter: dict[str, str],
+    errors: list[str],
+    task_doc: Path,
+    repo_root: Path,
+) -> None:
+    missing = [field for field in FRONTMATTER_REQUIRED_FIELDS if field not in frontmatter]
+    if missing:
+        errors.append(
+            f"Project document missing required frontmatter fields in {repo_relative(task_doc, repo_root)}: "
+            f"{', '.join(missing)}"
+        )
+    stage = frontmatter.get("workflow_current_stage")
+    if stage and stage not in STAGE_ORDER:
+        errors.append(
+            f"Project document has invalid workflow_current_stage in {repo_relative(task_doc, repo_root)}: {stage}"
+        )
+    project_type = frontmatter.get("workflow_project_type")
+    if project_type and project_type not in PROJECT_TYPES:
+        errors.append(
+            f"Project document has invalid workflow_project_type in {repo_relative(task_doc, repo_root)}: {project_type}"
+        )
+    work_type = frontmatter.get("workflow_work_type")
+    if work_type and work_type not in WORK_TYPES:
+        errors.append(
+            f"Project document has invalid workflow_work_type in {repo_relative(task_doc, repo_root)}: {work_type}"
+        )
+    for field in FLAG_FIELDS:
+        value = frontmatter.get(field)
+        if value is None:
+            continue
+        if value not in {"0", "1"}:
+            errors.append(
+                f"Project document has invalid {field} in {repo_relative(task_doc, repo_root)}: "
+                "expected 0 or 1."
+            )
+
+
+def validate_handoff_block(
+    block: str,
+    errors: list[str],
+    location_label: str,
+    requirement_id: str,
+    expected_current_role: str | None = None,
+    expected_next_role: str | None = None,
+) -> dict[str, str] | None:
+    missing_headings = [heading for heading in REQUIRED_HEADINGS if heading not in block]
+    if missing_headings:
+        errors.append(
+            f"Handoff block missing required sections in {location_label}: {', '.join(missing_headings)}"
+        )
+
+    missing_labels = [label for label in REQUIRED_HANDOFF_SUBLABELS if extract_label_value(block, label) is None]
+    if missing_labels:
+        errors.append(
+            f"Handoff block missing required handoff labels in {location_label}: {', '.join(missing_labels)}"
+        )
+
+    missing_metadata = [label for label in REQUIRED_METADATA_LABELS if extract_label_value(block, label) is None]
+    if missing_metadata:
+        errors.append(
+            f"Handoff block missing required metadata labels in {location_label}: {', '.join(missing_metadata)}"
+        )
+
+    current_role_id = extract_label_value(block, "- 当前角色标识：")
+    next_role_id = extract_label_value(block, "- 下一角色标识：")
+    block_requirement_id = extract_label_value(block, "- 需求标识：")
+    handoff_id = extract_label_value(block, "- 当前交接标识：")
+
+    if block_requirement_id and block_requirement_id != requirement_id:
+        errors.append(
+            f"Handoff block requirement_id mismatch in {location_label}: "
+            f"expected {requirement_id}, got {block_requirement_id}"
+        )
+
+    if expected_current_role and current_role_id != expected_current_role:
+        errors.append(
+            f"Handoff block current role mismatch in {location_label}: "
+            f"expected {expected_current_role}, got {current_role_id or 'missing'}"
+        )
+
+    if expected_next_role and next_role_id != expected_next_role:
+        errors.append(
+            f"Handoff block next role mismatch in {location_label}: "
+            f"expected {expected_next_role}, got {next_role_id or 'missing'}"
+        )
+
+    if current_role_id is None or next_role_id is None or handoff_id is None:
+        return None
+
+    return {
+        "current_role_id": current_role_id,
+        "next_role_id": next_role_id,
+        "requirement_id": block_requirement_id or "",
+        "handoff_id": handoff_id,
+    }
+
+
+def find_latest_role_chain(blocks: list[str], current_roles: list[str], next_roles: list[str]) -> list[int]:
     selected_reversed: list[int] = []
     before_index = len(blocks)
-    for current_role_id, next_role_id in zip(
-        reversed(current_role_ids),
-        reversed(next_role_ids),
-    ):
+    for current_role, next_role in zip(reversed(current_roles), reversed(next_roles)):
         found_index = None
         for index in range(before_index - 1, -1, -1):
             block = blocks[index]
             if (
-                extract_label_value(block, "- 当前角色标识：") == current_role_id
-                and extract_label_value(block, "- 下一角色标识：") == next_role_id
+                extract_label_value(block, "- 当前角色标识：") == current_role
+                and extract_label_value(block, "- 下一角色标识：") == next_role
             ):
                 found_index = index
                 break
@@ -240,414 +400,115 @@ def find_latest_role_chain(
     return list(reversed(selected_reversed))
 
 
-def validate_metadata_chain(
-    metadata_chain: list[dict[str, str]],
+def validate_unique_handoff_ids(
+    chain: list[dict[str, str]],
     errors: list[str],
     label: str,
 ) -> None:
-    if not metadata_chain:
-        return
-    requirement_ids = {metadata["requirement_id"] for metadata in metadata_chain}
-    if len(requirement_ids) != 1:
-        errors.append(
-            f"{label} mixes multiple requirement identifiers: "
-            f"{', '.join(sorted(requirement_ids))}"
-        )
-    declared_project_paths = {metadata["project_path"] for metadata in metadata_chain}
-    if len(declared_project_paths) != 1:
-        errors.append(
-            f"{label} mixes multiple declared project paths: "
-            f"{', '.join(sorted(declared_project_paths))}"
-        )
-    handoff_ids = [metadata["handoff_id"] for metadata in metadata_chain]
+    handoff_ids = [item["handoff_id"] for item in chain]
     if len(set(handoff_ids)) != len(handoff_ids):
         errors.append(f"{label} reuses duplicate handoff identifiers.")
 
 
-def extract_repair_record_blocks(text: str) -> list[str]:
-    pattern = re.compile(r"(?m)^## Repair Record[^\n]*\n")
-    matches = list(pattern.finditer(text))
-    blocks: list[str] = []
-    for index, match in enumerate(matches):
-        start = match.start()
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
-        next_handoff = text.find("\n## ", match.end())
-        if next_handoff != -1 and next_handoff < end:
-            end = next_handoff
-        blocks.append(text[start:end])
-    return blocks
+def run_quality_check(repo_root: Path, handoff_doc: Path, block_index: int | None, label: str, errors: list[str]) -> None:
+    quality_script = repo_root / "agents/scripts/check_handoff_quality.py"
+    command = [sys.executable, str(quality_script), "--repo-root", str(repo_root), "--handoff-doc", str(handoff_doc)]
+    if block_index is not None:
+        command.extend(["--block-index", str(block_index)])
+    completed = subprocess.run(command, capture_output=True, text=True)
+    if completed.returncode != 0:
+        detail = completed.stdout.strip() or completed.stderr.strip() or "unknown quality-check failure"
+        errors.append(f"Handoff quality check failed for {label}: {detail}")
 
 
-def check_repair_records(text: str, errors: list[str]) -> None:
-    repair_records = extract_repair_record_blocks(text)
-    if (
-        ("Workflow gate check failed" in text or "Normalized handoff document in place" in text)
-        and not repair_records
-    ):
-        errors.append(
-            "Task document records a gate failure or normalizer write but has no ## Repair Record block."
-        )
-    for index, block in enumerate(repair_records, start=1):
-        label = f"Repair Record #{index}"
-        repair_type = extract_label_value(block, "- 修复类型：")
-        required_labels = [
-            "- 修复类型：",
-            "- 修复处理：",
-            "- 负责角色：",
-            "- 是否改变需求含义：",
-            "- 是否改变实现行为：",
-            "- 后续验证：",
-        ]
-        missing = [item for item in required_labels if extract_label_value(block, item) is None]
-        if missing:
-            errors.append(f"{label} missing required fields: {', '.join(missing)}")
-        if repair_type is not None and repair_type not in ALLOWED_REPAIR_TYPES:
-            errors.append(
-                f"{label} has unsupported repair type: {repair_type}"
-            )
+def stage_flag_name(stage: str) -> str | None:
+    return {
+        "reviewer": "workflow_implementer_passed",
+        "tester": "workflow_reviewer_passed",
+        "knowledge-keeper": "workflow_tester_passed",
+    }.get(stage)
 
 
-def resolve_declared_project_path(value: str, repo_root: Path) -> Path:
-    candidate = Path(value)
-    if candidate.is_absolute():
-        return candidate.resolve()
-    return (repo_root / candidate).resolve()
-
-
-def check_file_exists(path: Path, label: str, errors: list[str], repo_root: Path) -> None:
-    if not path.exists():
-        errors.append(f"{label} not found: {repo_relative(path, repo_root)}")
-    elif path.is_dir():
-        errors.append(f"{label} is a directory, expected file: {repo_relative(path, repo_root)}")
-
-
-def check_handoff_doc(
-    path: Path,
-    errors: list[str],
+def validate_target_paths(
     repo_root: Path,
-    approved_project_path: Path,
-    expected_current_role_id: str | None = None,
-    expected_next_role_id: str | None = None,
-    expected_work_type: str | None = None,
-    block_override: str | None = None,
-    block_label: str | None = None,
-) -> dict[str, str] | None:
-    check_file_exists(path, "Handoff document", errors, repo_root)
-    if errors and not path.exists():
-        return None
-
-    text = read_text(path)
-    block = block_override if block_override is not None else extract_last_handoff_block(text)
-    location_label = block_label or repo_relative(path, repo_root)
-    if not block:
-        errors.append(
-            f"Handoff document does not contain any handoff block: {location_label}"
-        )
-        return None
-
-    missing = [heading for heading in REQUIRED_HEADINGS if heading not in block]
-    if missing:
-        errors.append(
-            "Latest handoff block missing required sections in "
-            f"{location_label}: {', '.join(missing)}"
-        )
-
-    heading_positions = [block.find(heading) for heading in REQUIRED_HEADINGS]
-    if any(position == -1 for position in heading_positions):
-        pass
-    elif heading_positions != sorted(heading_positions):
-        errors.append(
-            "Latest handoff block has headings out of order in "
-            f"{location_label}"
-        )
-
-    missing_sublabels = [label for label in REQUIRED_HANDOFF_SUBLABELS if label not in block]
-    if missing_sublabels:
-        errors.append(
-            "Latest handoff block missing required Chinese handoff labels in "
-            f"{location_label}: {', '.join(missing_sublabels)}"
-        )
-
-    missing_research = [label for label in REQUIRED_RESEARCH_LABELS if label not in block]
-    if missing_research:
-        errors.append(
-            "Latest handoff block missing required research records in "
-            f"{location_label}: {', '.join(missing_research)}"
-        )
-
-    missing_confirmation = [label for label in REQUIRED_CONFIRMATION_LABELS if label not in block]
-    if missing_confirmation:
-        errors.append(
-            "Latest handoff block missing required confirmation records in "
-            f"{location_label}: {', '.join(missing_confirmation)}"
-        )
-
-    missing_metadata = [label for label in REQUIRED_METADATA_LABELS if label not in block]
-    if missing_metadata:
-        errors.append(
-            "Latest handoff block missing required metadata labels in "
-            f"{location_label}: {', '.join(missing_metadata)}"
-        )
-
-    current_role_id = extract_label_value(block, "- 当前角色标识：")
-    handoff_id = extract_label_value(block, "- 当前交接标识：")
-    requirement_id = extract_label_value(block, "- 需求标识：")
-    declared_project_path = extract_label_value(block, "- 项目落点：")
-    next_role_id = extract_label_value(block, "- 下一角色标识：")
-    issue_type = extract_label_value(block, "- 问题类型：")
-
-    if current_role_id is None:
-        errors.append(
-            f"Latest handoff block missing current role id metadata in {location_label}"
-        )
-    if handoff_id is None:
-        errors.append(
-            f"Latest handoff block missing handoff identifier in {location_label}"
-        )
-    if requirement_id is None:
-        errors.append(
-            f"Latest handoff block missing requirement identifier in {location_label}"
-        )
-    if declared_project_path is None:
-        errors.append(
-            f"Latest handoff block missing project path metadata in {location_label}"
-        )
-    else:
-        resolved_declared_project_path = resolve_declared_project_path(declared_project_path, repo_root)
-        if resolved_declared_project_path != approved_project_path.resolve():
+    target_paths: list[Path],
+    project_type: str,
+    stage: str,
+    errors: list[str],
+) -> None:
+    if stage != "general" and not target_paths:
+        errors.append(f"{stage} stage requires at least one --target-path.")
+        return
+    if project_type != "new-project":
+        return
+    for target in target_paths:
+        resolved = target.resolve()
+        if resolved == repo_root.resolve():
+            errors.append("new-project work must not target repository root directly.")
+        elif resolved.parent == repo_root.resolve() and resolved.suffix:
             errors.append(
-                "Latest handoff block project path does not match approved project path in "
-                f"{location_label}: declared {declared_project_path}"
+                f"new-project work must use a dedicated folder, not a root-level file target: {repo_relative(target, repo_root)}"
             )
-    if next_role_id is None:
-        errors.append(
-            f"Latest handoff block missing next role id metadata in {location_label}"
-        )
 
-    if issue_type is None:
-        errors.append(
-            f"Latest handoff block missing work type metadata in {location_label}"
-        )
-    elif issue_type not in {"bugfix", "feature", "task"}:
-        errors.append(
-            f"Latest handoff block has unsupported issue type in {location_label}: {issue_type}"
-        )
-    if expected_work_type is not None and issue_type is not None and issue_type != expected_work_type:
-        errors.append(
-            "Latest handoff block work type does not match validated work type in "
-            f"{location_label}: expected {expected_work_type}, got {issue_type}"
-        )
 
-    is_bugfix = issue_type == "bugfix"
-    if is_bugfix:
-        missing_bugfix = [label for label in BUGFIX_REQUIRED_LABELS if label not in block]
-        if missing_bugfix:
-            errors.append(
-                "Bugfix handoff missing required bug labels in "
-                f"{location_label}: {', '.join(missing_bugfix)}"
-            )
-        if expected_next_role_id is not None:
-            extra_bugfix = BUGFIX_STAGE_EXTRA_LABELS.get(expected_next_role_id, [])
-            missing_extra = [label for label in extra_bugfix if label not in block]
-            if missing_extra:
+def validate_bugfix_blocks(
+    blocks: list[str],
+    errors: list[str],
+    task_doc: Path,
+    repo_root: Path,
+) -> None:
+    for index, block in enumerate(blocks):
+        location = f"{repo_relative(task_doc, repo_root)}#handoff-{index + 1}"
+        missing_base = [label for label in BUGFIX_BASE_LABELS if extract_label_value(block, label) is None]
+        if missing_base:
+            errors.append(f"Bugfix handoff missing required labels in {location}: {', '.join(missing_base)}")
+            continue
+        issue_type = extract_label_value(block, "- 问题类型：")
+        if issue_type != "bugfix":
+            errors.append(f"Bugfix handoff must record 问题类型：bugfix in {location}.")
+        current_role = extract_label_value(block, "- 当前角色标识：")
+        if current_role in {"solution-designer", "implementer", "reviewer", "tester", "knowledge-keeper"}:
+            missing_downstream = [
+                label for label in BUGFIX_DOWNSTREAM_LABELS if extract_label_value(block, label) is None
+            ]
+            if missing_downstream:
                 errors.append(
-                    "Bugfix handoff missing required downstream bug labels in "
-                    f"{location_label}: {', '.join(missing_extra)}"
+                    f"Bugfix downstream handoff missing required labels in {location}: {', '.join(missing_downstream)}"
                 )
 
-    if expected_current_role_id is not None and current_role_id is not None:
-        if current_role_id != expected_current_role_id:
-            errors.append(
-                "Latest handoff block has the wrong current role id in "
-                f"{location_label}: expected {expected_current_role_id}, got {current_role_id}"
-            )
 
-    if expected_next_role_id is not None and next_role_id is not None:
-        if next_role_id != expected_next_role_id:
-            errors.append(
-                "Latest handoff block routes to the wrong next role id in "
-                f"{location_label}: expected {expected_next_role_id}, got {next_role_id}"
-            )
-
-    if current_role_id is not None:
-        required_role_specific = ROLE_SPECIFIC_REQUIRED_LABELS.get(current_role_id, [])
-        missing_role_specific = [label for label in required_role_specific if label not in block]
-        if missing_role_specific:
-            errors.append(
-                "Latest handoff block missing role-specific required labels in "
-                f"{location_label}: {', '.join(missing_role_specific)}"
-            )
-
-    if handoff_id is not None and requirement_id is not None and requirement_id not in handoff_id:
-        errors.append(
-            "Latest handoff block handoff identifier must include requirement identifier in "
-            f"{location_label}: handoff {handoff_id}, requirement {requirement_id}"
-        )
-
-    if (
-        current_role_id is None
-        or handoff_id is None
-        or requirement_id is None
-        or declared_project_path is None
-        or next_role_id is None
-    ):
-        return None
-
-    return {
-        "current_role_id": current_role_id,
-        "handoff_id": handoff_id,
-        "requirement_id": requirement_id,
-        "project_path": declared_project_path,
-        "next_role_id": next_role_id,
-        "issue_type": issue_type or "",
-    }
-
-
-def check_documentation_artifact(
-    path: Path,
-    label: str,
-    errors: list[str],
-    repo_root: Path,
-    approved_project_path: Path,
-) -> None:
-    check_file_exists(path, label, errors, repo_root)
-    if errors and not path.exists():
+def validate_rule_governance_context(repo_root: Path, errors: list[str]) -> None:
+    context_doc = (repo_root / "agents/docs/context/workflow-system-context.md").resolve()
+    if not context_doc.exists():
+        errors.append("Rule-system change requires agents/docs/context/workflow-system-context.md.")
         return
-    ensure_within_repo(path, repo_root, label, errors)
-    text = read_text(path)
-    declared_project_path = extract_label_value(text, "- 项目落点：")
-    if declared_project_path is None:
-        errors.append(
-            f"{label} does not declare project path metadata: {repo_relative(path, repo_root)}"
-        )
-        return
-    resolved_declared_project_path = resolve_declared_project_path(declared_project_path, repo_root)
-    if resolved_declared_project_path != approved_project_path.resolve():
-        errors.append(
-            f"{label} project path does not match approved project path in {repo_relative(path, repo_root)}: "
-            f"declared {declared_project_path}"
-        )
-    try:
-        path.resolve().relative_to(approved_project_path.resolve())
-    except ValueError:
-        errors.append(
-            f"{label} is not stored inside the approved project path: "
-            f"{repo_relative(path, repo_root)} not under {repo_relative(approved_project_path, repo_root)}"
-        )
-
-
-def is_repo_root(path: Path, repo_root: Path) -> bool:
-    return path.resolve() == repo_root.resolve()
-
-
-def ensure_within_repo(path: Path, repo_root: Path, label: str, errors: list[str]) -> None:
-    try:
-        path.resolve().relative_to(repo_root.resolve())
-    except ValueError:
-        errors.append(f"{label} is outside repository: {path}")
-
-
-def check_target_paths(targets: list[Path], project_path: Path, errors: list[str], repo_root: Path) -> None:
-    for target in targets:
-        ensure_within_repo(target, repo_root, "Target path", errors)
-        try:
-            target.resolve().relative_to(project_path.resolve())
-        except ValueError:
-            errors.append(
-                "Target path is outside approved project path: "
-                f"{repo_relative(target, repo_root)} not under {repo_relative(project_path, repo_root)}"
-            )
+    text = read_text(context_doc)
+    if "## Rule Governance" not in text:
+        errors.append("workflow-system-context.md must contain a fixed ## Rule Governance section.")
+    for label in RULE_GOVERNANCE_REQUIRED_LABELS:
+        if extract_label_value(text, label) is None:
+            errors.append(f"Rule Governance section missing required label in workflow-system-context.md: {label}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check whether workflow prerequisites are satisfied before implementation."
-    )
-    parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Repository root. Defaults to current directory.",
-    )
-    parser.add_argument(
-        "--task-doc",
-        required=True,
-        help="Path to the current task document or planning document.",
-    )
+    parser = argparse.ArgumentParser(description="Check workflow gate status against frontmatter and handoff chain.")
+    parser.add_argument("--repo-root", default=".")
+    parser.add_argument("--task-doc", required=True)
     parser.add_argument(
         "--stage",
+        required=True,
         choices=["general", "implementer", "reviewer", "tester", "knowledge-keeper", "complete"],
-        default="general",
-        help=(
-            "Workflow stage to validate. "
-            "'implementer' applies pre-coding checks, later stages validate role routing, "
-            "and 'complete' verifies the requirement is closed by knowledge-keeper."
-        ),
     )
-    parser.add_argument(
-        "--project-type",
-        choices=["new-project", "existing-project"],
-        required=True,
-        help="Whether this work creates a new project/subproject or modifies an existing one.",
-    )
-    parser.add_argument(
-        "--work-type",
-        choices=["feature", "bugfix", "task"],
-        default="feature",
-        help="Expected workflow work type. Use 'bugfix' to require bug-mode metadata.",
-    )
-    parser.add_argument(
-        "--project-path",
-        required=True,
-        help="Approved project folder or landing zone for the work.",
-    )
-    parser.add_argument(
-        "--documentation-status",
-        choices=["documented", "backfilled"],
-        help=(
-            "Documentation state for existing-project work. "
-            "Use 'documented' when usable docs already existed, or 'backfilled' when a new backfill artifact was created."
-        ),
-    )
-    parser.add_argument(
-        "--backfill-doc",
-        help="Backfill document path required when --documentation-status=backfilled.",
-    )
-    parser.add_argument(
-        "--documentation-doc",
-        help="Existing documentation path required when --documentation-status=documented.",
-    )
-    parser.add_argument(
-        "--handoff-doc",
-        action="append",
-        default=[],
-        help="Handoff document to validate. Repeatable.",
-    )
-    parser.add_argument(
-        "--target-path",
-        action="append",
-        default=[],
-        help="Implementation target path to verify stays inside project-path. Repeatable.",
-    )
-    parser.add_argument(
-        "--allow-root",
-        action="store_true",
-        help="Allow repository root placement. Use only for explicitly approved exceptions.",
-    )
+    parser.add_argument("--handoff-doc", action="append", default=[])
+    parser.add_argument("--target-path", action="append", default=[])
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
     task_doc = (repo_root / args.task_doc).resolve() if not Path(args.task_doc).is_absolute() else Path(args.task_doc).resolve()
-    project_path = (repo_root / args.project_path).resolve() if not Path(args.project_path).is_absolute() else Path(args.project_path).resolve()
     handoff_docs = [
         (repo_root / doc).resolve() if not Path(doc).is_absolute() else Path(doc).resolve()
         for doc in args.handoff_doc
     ]
-    backfill_doc = None
-    if args.backfill_doc:
-        backfill_doc = (repo_root / args.backfill_doc).resolve() if not Path(args.backfill_doc).is_absolute() else Path(args.backfill_doc).resolve()
-    documentation_doc = None
-    if args.documentation_doc:
-        documentation_doc = (repo_root / args.documentation_doc).resolve() if not Path(args.documentation_doc).is_absolute() else Path(args.documentation_doc).resolve()
     target_paths = [
         (repo_root / target).resolve() if not Path(target).is_absolute() else Path(target).resolve()
         for target in args.target_path
@@ -659,249 +520,159 @@ def main() -> int:
         print(f"[FAIL] Repository root not found: {repo_root}")
         return 1
 
-    check_file_exists(task_doc, "Task document", errors, repo_root)
-    ensure_within_repo(task_doc, repo_root, "Task document", errors)
-    if task_doc.exists() and not task_doc.is_dir():
-        check_repair_records(read_text(task_doc), errors)
+    check_file_exists(task_doc, "Project document", errors, repo_root)
+    ensure_within_repo(task_doc, repo_root, "Project document", errors)
+    if handoff_docs:
+        validate_handoff_docs(repo_root, handoff_docs, errors)
+    if target_paths:
+        for target in target_paths:
+            ensure_within_repo(target, repo_root, "Target path", errors)
 
-    if not project_path.exists():
-      errors.append(f"Project path not found: {repo_relative(project_path, repo_root)}")
-    ensure_within_repo(project_path, repo_root, "Project path", errors)
+    if errors:
+        print("[FAIL] Workflow gate check failed:")
+        for error in errors:
+            print(f"- {error}")
+        return 1
 
-    if args.project_type == "new-project":
-        if is_repo_root(project_path, repo_root) and not args.allow_root:
-            errors.append(
-                "New project may not use repository root as project-path without --allow-root."
-            )
+    text = read_text(task_doc)
+    frontmatter, body = extract_frontmatter(text)
+    validate_frontmatter(frontmatter, errors, task_doc, repo_root)
 
-    if args.project_type == "existing-project":
-        if args.documentation_status is None:
-            errors.append(
-                "Existing project work requires --documentation-status so the workflow can verify documented vs backfilled state."
-            )
-        if not project_path.exists():
-            errors.append("Existing project landing zone must already exist.")
-        if args.documentation_status == "documented":
-            if documentation_doc is None:
-                errors.append(
-                    "Existing project with documented status requires --documentation-doc."
-                )
-            else:
-                check_documentation_artifact(
-                    documentation_doc,
-                    "Documentation document",
-                    errors,
-                    repo_root,
-                    project_path,
-                )
-        if args.documentation_status == "backfilled":
-            if backfill_doc is None:
-                errors.append(
-                    "Existing project with backfilled documentation requires --backfill-doc."
-                )
-            else:
-                check_documentation_artifact(
-                    backfill_doc,
-                    "Backfill document",
-                    errors,
-                    repo_root,
-                    project_path,
-                )
+    requirement_id = frontmatter.get("requirement_id", "")
+    project_type = frontmatter.get("workflow_project_type", "")
+    work_type = frontmatter.get("workflow_work_type", "")
+    doc_backfilled = frontmatter.get("workflow_doc_backfilled", "")
+    current_stage = frontmatter.get("workflow_current_stage", "")
 
-    if args.project_type == "new-project" and args.documentation_status is not None:
-        errors.append("New-project work must not pass --documentation-status.")
+    validate_target_paths(repo_root, target_paths, project_type, args.stage, errors)
 
-    if args.backfill_doc and args.documentation_status != "backfilled":
-        errors.append("--backfill-doc may be used only when --documentation-status=backfilled.")
+    if project_type == "new-project" and doc_backfilled != "0":
+        errors.append("new-project work requires workflow_doc_backfilled=0.")
+    if project_type == "existing-project" and doc_backfilled not in {"0", "1"}:
+        errors.append("existing-project work requires workflow_doc_backfilled to be 0 or 1.")
 
-    if args.documentation_doc and args.documentation_status != "documented":
-        errors.append("--documentation-doc may be used only when --documentation-status=documented.")
+    blocks = extract_all_handoff_blocks(body)
+    if not blocks:
+        errors.append(f"Project document does not contain any handoff blocks: {repo_relative(task_doc, repo_root)}")
 
-    expectations = STAGE_EXPECTATIONS.get(args.stage)
-    metadata_chain: list[dict[str, str]] = []
-    chain_block_indexes: list[int] = []
-    if args.stage == "implementer" and len(handoff_docs) == 1:
-        handoff_doc = handoff_docs[0]
-        check_file_exists(handoff_doc, "Handoff document", errors, repo_root)
-        if handoff_doc.exists() and not handoff_doc.is_dir():
-            blocks = extract_all_handoff_blocks(read_text(handoff_doc))
-            chain_block_indexes = find_latest_role_chain(
-                blocks,
-                PRE_IMPLEMENTATION_CHAIN_CURRENT_ROLE_IDS,
-                PRE_IMPLEMENTATION_CHAIN_NEXT_ROLE_IDS,
-            )
-            if not chain_block_indexes:
-                errors.append(
-                    "implementer stage requires a full pre-implementation chain "
-                    "with requirement-analyst, architect, code-investigator, and solution-designer handoffs."
-                )
-            else:
-                for index, block_index in enumerate(chain_block_indexes):
-                    block = blocks[block_index]
-                    metadata = check_handoff_doc(
-                        handoff_doc,
-                        errors,
-                        repo_root,
-                        project_path,
-                        expected_current_role_id=PRE_IMPLEMENTATION_CHAIN_CURRENT_ROLE_IDS[index],
-                        expected_next_role_id=PRE_IMPLEMENTATION_CHAIN_NEXT_ROLE_IDS[index],
-                        expected_work_type=args.work_type,
-                        block_override=block,
-                        block_label=(
-                            f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}"
-                        ),
-                    )
-                    if metadata is not None:
-                        metadata_chain.append(metadata)
-                validate_metadata_chain(
-                    metadata_chain,
-                    errors,
-                    "Pre-implementation chain",
-                )
-    if expectations:
-        expected_current_role_ids = expectations["current_role_ids"]
-        expected_next_role_ids = expectations["next_role_ids"]
-        if args.stage == "complete":
-            if len(handoff_docs) != 1:
-                errors.append(
-                    "complete stage requires exactly one --handoff-doc containing the full "
-                    "8-role handoff chain from requirement-analyst through knowledge-keeper; "
-                    "do not pass only implementer/reviewer/tester/knowledge-keeper handoff docs."
-                )
-                expectations = None
-            else:
-                handoff_doc = handoff_docs[0]
-                check_file_exists(handoff_doc, "Handoff document", errors, repo_root)
-                if handoff_doc.exists() and not handoff_doc.is_dir():
-                    blocks = extract_all_handoff_blocks(read_text(handoff_doc))
-                    chain_block_indexes = find_latest_role_chain(
-                        blocks,
-                        FULL_CHAIN_CURRENT_ROLE_IDS,
-                        FULL_CHAIN_NEXT_ROLE_IDS,
-                    )
-                    if not chain_block_indexes:
-                        errors.append(
-                            "complete stage requires a full 8-role handoff chain from "
-                            "requirement-analyst through knowledge-keeper."
-                        )
-                    else:
-                        for index, block_index in enumerate(chain_block_indexes):
-                            block = blocks[block_index]
-                            metadata = check_handoff_doc(
-                                handoff_doc,
-                                errors,
-                                repo_root,
-                                project_path,
-                                expected_current_role_id=FULL_CHAIN_CURRENT_ROLE_IDS[index],
-                                expected_next_role_id=FULL_CHAIN_NEXT_ROLE_IDS[index],
-                                expected_work_type=args.work_type,
-                                block_override=block,
-                                block_label=(
-                                    f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}"
-                                ),
-                            )
-                            if metadata is not None:
-                                metadata_chain.append(metadata)
-                expectations = None
-        if expectations is None:
-            pass
-        elif len(expected_next_role_ids) == 1:
-            expected_current_role_id_list = expected_current_role_ids * len(handoff_docs)
-            expected_next_role_id_list = expected_next_role_ids * len(handoff_docs)
-        else:
-            expected_current_role_id_list = expected_current_role_ids
-            expected_next_role_id_list = expected_next_role_ids
-            if len(handoff_docs) != len(expected_next_role_ids):
-                errors.append(
-                    f"{args.stage} stage requires exactly {len(expected_next_role_ids)} --handoff-doc values "
-                    "to validate the expected stage handoff chain."
-                )
-        if expectations is not None:
-            for index, handoff_doc in enumerate(handoff_docs):
-                expected_current_role_id = None
-                expected_next_role_id = None
-                if index < len(expected_current_role_id_list):
-                    expected_current_role_id = expected_current_role_id_list[index]
-                if index < len(expected_next_role_id_list):
-                    expected_next_role_id = expected_next_role_id_list[index]
-                metadata = check_handoff_doc(
-                    handoff_doc,
-                    errors,
-                    repo_root,
-                    project_path,
-                    expected_current_role_id=expected_current_role_id,
-                    expected_next_role_id=expected_next_role_id,
-                    expected_work_type=args.work_type,
-                )
-                if metadata is not None:
-                    metadata_chain.append(metadata)
-    else:
-        for handoff_doc in handoff_docs:
-            metadata = check_handoff_doc(
-                handoff_doc,
-                errors,
-                repo_root,
-                project_path,
-                expected_work_type=args.work_type,
-            )
-            if metadata is not None:
-                metadata_chain.append(metadata)
+    if work_type == "bugfix":
+        validate_bugfix_blocks(blocks, errors, task_doc, repo_root)
 
-    if args.stage == "complete" and metadata_chain:
-        validate_metadata_chain(metadata_chain, errors, "Completion chain")
+    rule_system_change = is_rule_system_change(repo_root, task_doc, target_paths)
+    validate_project_doc_location(repo_root, task_doc, target_paths, rule_system_change, errors)
+    if rule_system_change:
+        validate_rule_governance_context(repo_root, errors)
 
-    if args.stage in {"implementer", "reviewer", "tester", "knowledge-keeper", "complete"}:
-        if not handoff_docs:
-            errors.append(
-                f"{args.stage} stage requires at least one --handoff-doc with a valid structured handoff."
-            )
-    if args.stage in {"implementer", "reviewer", "tester", "knowledge-keeper"} and len(handoff_docs) != 1:
-        errors.append(
-            f"{args.stage} stage requires exactly one --handoff-doc so each gate run validates a single requirement transition."
+    for index, block in enumerate(blocks):
+        validate_handoff_block(
+            block,
+            errors,
+            f"{repo_relative(task_doc, repo_root)}#handoff-{index + 1}",
+            requirement_id,
         )
 
     if args.stage == "implementer":
-        if not target_paths:
+        if current_stage != "solution-designer":
+            errors.append("implementer stage requires workflow_current_stage=solution-designer.")
+        if frontmatter.get("workflow_solution_approved") != "1":
+            errors.append("implementer stage requires workflow_solution_approved=1.")
+        if frontmatter.get("workflow_pre_chain_verified") != "1":
+            errors.append("implementer stage requires workflow_pre_chain_verified=1.")
+        chain_indexes = find_latest_role_chain(blocks, PRE_CHAIN_CURRENT, PRE_CHAIN_NEXT)
+        if not chain_indexes:
             errors.append(
-                "Implementer stage requires at least one --target-path so coding scope can be checked."
+                "implementer stage requires a complete requirement-analyst -> architect -> "
+                "code-investigator -> solution-designer chain."
             )
-
-    if target_paths:
-        check_target_paths(target_paths, project_path, errors, repo_root)
-
-    quality_script = repo_root / "agents/scripts/check_handoff_quality.py"
-    quality_targets: list[tuple[Path, int | None, str]] = []
-    if args.stage in {"implementer", "complete"} and len(handoff_docs) == 1 and chain_block_indexes:
-        handoff_doc = handoff_docs[0]
-        for block_index in chain_block_indexes:
-            quality_targets.append(
-                (
-                    handoff_doc,
-                    block_index,
-                    f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}",
+        else:
+            chain_meta: list[dict[str, str]] = []
+            for i, block_index in enumerate(chain_indexes):
+                metadata = validate_handoff_block(
+                    blocks[block_index],
+                    errors,
+                    f"{repo_relative(task_doc, repo_root)}#handoff-{block_index + 1}",
+                    requirement_id,
+                    PRE_CHAIN_CURRENT[i],
+                    PRE_CHAIN_NEXT[i],
                 )
-            )
-    else:
-        for handoff_doc in handoff_docs:
-            quality_targets.append((handoff_doc, None, repo_relative(handoff_doc, repo_root)))
+                if metadata:
+                    chain_meta.append(metadata)
+            validate_unique_handoff_ids(chain_meta, errors, "Pre-implementation chain")
+            for block_index in chain_indexes:
+                run_quality_check(
+                    repo_root,
+                    task_doc,
+                    block_index,
+                    f"{repo_relative(task_doc, repo_root)}#handoff-{block_index + 1}",
+                    errors,
+                )
 
-    for handoff_doc, block_index, label in quality_targets:
-        command = [
-            sys.executable,
-            str(quality_script),
-            "--repo-root",
-            str(repo_root),
-            "--handoff-doc",
-            str(handoff_doc),
-            "--project-path",
-            str(project_path),
-        ]
-        if block_index is not None:
-            command.extend(["--block-index", str(block_index)])
-        result = subprocess.run(command, capture_output=True, text=True)
-        if result.returncode != 0:
-            detail = result.stdout.strip() or result.stderr.strip() or "unknown quality check failure"
-            errors.append(f"Handoff quality check failed for {label}: {detail}")
+    elif args.stage in {"reviewer", "tester", "knowledge-keeper"}:
+        expected_stage = STAGE_EXPECTED_CURRENT_ROLE[args.stage]
+        expected_flag = stage_flag_name(args.stage)
+        if current_stage != expected_stage:
+            errors.append(f"{args.stage} stage requires workflow_current_stage={expected_stage}.")
+        if expected_flag and frontmatter.get(expected_flag) != "1":
+            errors.append(f"{args.stage} stage requires {expected_flag}=1.")
+        latest_block = extract_last_handoff_block(body)
+        metadata = validate_handoff_block(
+            latest_block,
+            errors,
+            repo_relative(task_doc, repo_root),
+            requirement_id,
+            expected_stage,
+            args.stage,
+        )
+        if metadata:
+            run_quality_check(repo_root, task_doc, len(blocks) - 1, repo_relative(task_doc, repo_root), errors)
+
+    elif args.stage == "complete":
+        if len(handoff_docs) != 1:
+            errors.append(
+                "complete stage requires exactly one --handoff-doc containing the full 8-role chain."
+            )
+        elif handoff_docs[0].resolve() != task_doc.resolve():
+            errors.append(
+                "complete stage requires --handoff-doc to point to the same current project document passed via --task-doc."
+            )
+        if current_stage != "knowledge-keeper":
+            errors.append("complete stage requires workflow_current_stage=knowledge-keeper before final pass.")
+        if frontmatter.get("workflow_knowledge_keeper_passed") != "1":
+            errors.append("complete stage requires workflow_knowledge_keeper_passed=1.")
+        if frontmatter.get("workflow_completion_passed") == "1":
+            errors.append("complete stage must run before AI writes workflow_completion_passed=1.")
+        chain_indexes = find_latest_role_chain(blocks, FULL_CHAIN_CURRENT, FULL_CHAIN_NEXT)
+        if not chain_indexes:
+            errors.append(
+                "complete stage requires a complete 8-role chain from requirement-analyst through knowledge-keeper."
+            )
+        else:
+            chain_meta: list[dict[str, str]] = []
+            for i, block_index in enumerate(chain_indexes):
+                metadata = validate_handoff_block(
+                    blocks[block_index],
+                    errors,
+                    f"{repo_relative(task_doc, repo_root)}#handoff-{block_index + 1}",
+                    requirement_id,
+                    FULL_CHAIN_CURRENT[i],
+                    FULL_CHAIN_NEXT[i],
+                )
+                if metadata:
+                    chain_meta.append(metadata)
+            validate_unique_handoff_ids(chain_meta, errors, "Completion chain")
+            for block_index in chain_indexes:
+                run_quality_check(
+                    repo_root,
+                    task_doc,
+                    block_index,
+                    f"{repo_relative(task_doc, repo_root)}#handoff-{block_index + 1}",
+                    errors,
+                )
+
+    elif args.stage == "general":
+        latest_block = extract_last_handoff_block(body)
+        if latest_block:
+            run_quality_check(repo_root, task_doc, len(blocks) - 1, repo_relative(task_doc, repo_root), errors)
 
     if errors:
         print("[FAIL] Workflow gate check failed:")
@@ -911,25 +682,19 @@ def main() -> int:
 
     print("[PASS] Workflow gate check passed.")
     print(f"- stage: {args.stage}")
-    print(f"- task document: {repo_relative(task_doc, repo_root)}")
-    print(f"- project type: {args.project_type}")
-    print(f"- project path: {repo_relative(project_path, repo_root)}")
-    if args.documentation_status:
-        print(f"- documentation status: {args.documentation_status}")
-    if documentation_doc:
-        print(f"- documentation document: {repo_relative(documentation_doc, repo_root)}")
-    if backfill_doc:
-        print(f"- backfill document: {repo_relative(backfill_doc, repo_root)}")
+    print(f"- project document: {repo_relative(task_doc, repo_root)}")
+    print(f"- project type: {project_type}")
+    print(f"- work type: {work_type}")
     if handoff_docs:
         print("- validated handoff docs:")
-        for handoff_doc in handoff_docs:
-            print(f"  - {repo_relative(handoff_doc, repo_root)}")
+        for doc in handoff_docs:
+            print(f"  - {repo_relative(doc, repo_root)}")
     if target_paths:
         print("- validated target paths:")
-        for target_path in target_paths:
-            print(f"  - {repo_relative(target_path, repo_root)}")
+        for target in target_paths:
+            print(f"  - {repo_relative(target, repo_root)}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

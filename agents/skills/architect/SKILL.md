@@ -17,11 +17,12 @@ Translate approved requirements into a minimum-change architecture plan. Stay wi
 
 ## Workflow
 
-1. Read the requirement handoff.
-2. Inspect only enough repo structure to identify relevant modules and boundaries.
-3. Map the user flow to system flow.
-4. Define minimum-change strategy and invariants.
-5. Produce a structured handoff for investigation.
+1. Complete internal research on the requirement handoff, current project document, repo structure, and existing boundaries.
+2. Complete external research and record official facts, mainstream approaches, and mature reference patterns that affect architecture.
+3. Inspect only enough repo structure to identify relevant modules and boundaries.
+4. Map the user flow to system flow.
+5. Define minimum-change strategy and invariants.
+6. Produce a structured handoff for investigation.
 
 ## Output Contract
 
@@ -40,7 +41,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, and schema/migration labels required by the pipeline contract. Use the role template when in doubt.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, confirmation, and schema/migration labels required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. Update `workflow_current_stage` to `architect` only after the architect handoff is complete.
 
 Under `【交付物】`, include:
 

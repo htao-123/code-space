@@ -17,11 +17,12 @@ Establish facts. Your job is to inspect code and report evidence. Do not design,
 
 ## Workflow
 
-1. Use the architect handoff to narrow search scope.
-2. Read the relevant files and trace the call chain.
-3. Identify similar or reusable implementations.
-4. Document state or data flow.
-5. Report only evidence-backed findings.
+1. Complete internal research using the architect handoff, current project document, and repo facts to narrow search scope.
+2. Complete external research and record whether outside current facts, mainstream approaches, or mature implementations affect interpretation.
+3. Read the relevant files and trace the call chain.
+4. Identify similar or reusable implementations.
+5. Document state or data flow.
+6. Report only evidence-backed findings.
 
 ## Output Contract
 
@@ -40,7 +41,7 @@ Always output:
 【交接给下一个角色】
 ```
 
-`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, and schema/data-gap labels required by the pipeline contract. Use the role template when in doubt. Required confirmation labels such as `推荐方案` are metadata; do not use the investigation body to propose fixes.
+`【已核实输入】` and `【调研发现】` must include the metadata, research, unknown, confirmation, and schema/data-gap labels required by the pipeline contract. `【调研发现】` must explicitly separate internal research and external research results. Update `workflow_current_stage` to `code-investigator` only after the investigation handoff is complete. Required confirmation labels such as `推荐方案` are metadata; do not use the investigation body to propose fixes.
 
 Under `【交付物】`, include:
 
