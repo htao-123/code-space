@@ -28,6 +28,13 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 - Every completed requirement must also include a workflow retrospective that checks whether the AI workflow exposed any rule or process issue.
 - Workflow rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
 - Before advancing from `solution-designer` to `implementer`, present the proposed solution to the user and wait for explicit approval. Do not treat an internally completed solution handoff as approval to start implementation.
+- Do not silently edit completed role handoff blocks to make a failed gate pass.
+- If a gate fails, record the failure and classify the repair as `format-only`, `evidence-correction`, `content-regeneration`, or `workflow-repair` before rerunning the gate.
+- `format-only` repair may use the handoff normalizer; evidence/content/workflow repair must append an explicit correction or route back to the responsible role instead of overwriting history.
+- Before implementation, the gate must validate the full pre-implementation chain from `requirement-analyst` through `solution-designer`, not only the latest solution block.
+- Completion must validate one task document containing the full 8-role chain from `requirement-analyst` through `knowledge-keeper`.
+- Repair records must use a task-level `## Repair Record` block with repair type, handling, responsible role, requirement-impact status, implementation-impact status, and follow-up validation.
+- `normalize_handoff_format.py --write --repair-type format-only --ack-format-only` must append a task-level `format-only` repair record when it writes the file.
 
 ## Gate Check
 
@@ -45,7 +52,7 @@ Use this gate to verify:
 - required Chinese handoff sublabels exist
 - required research records exist
 - required quality evidence fields exist
-- the validated handoff block or validated closing chain uses the expected role ids and handoff id metadata for the current stage
+- the validated handoff block or validated full chain uses the expected role ids and handoff id metadata for the current stage
 - new-project work is not being placed at repository root unless explicitly allowed
 - existing-project work declares whether documentation was already usable or had to be backfilled
 - existing-project work points to the actual documentation artifact used for that declaration
@@ -59,13 +66,16 @@ Use this gate to verify:
 - the terminal workflow archive records requirement retrospective, self-review, self-correction, workflow retrospective, and rule-update status
 
 If the gate fails, stop and repair the missing workflow artifact before coding.
+Do not repair a failed gate by editing handoff content silently.
+Record the failed command or failure summary, the repair type, the responsible role, and whether the repair changed meaning or only formatting.
 
 Run the appropriate stage gate, not only `--stage implementer`.
 Use later stages as the workflow advances, and use the completion gate before treating a requirement as finished.
-The completion gate should validate the closing chain from implementer through knowledge-keeper, not only the final archive block.
+The completion gate must validate one task document containing the full 8-role chain from requirement-analyst through knowledge-keeper; do not run completion with only implementer/reviewer/tester/knowledge-keeper handoff documents.
 The workflow gate should also run the handoff quality checker by default.
 The quality checker may not be disabled in normal workflow execution.
-If the gate is blocked only by handoff formatting shape, run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write` before deciding the requirement itself is blocked.
+If the gate is blocked only by handoff formatting shape, run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write --repair-type format-only --ack-format-only` before deciding the requirement itself is blocked; this writes a task-level `format-only` repair record.
+The normalizer is allowed only for `format-only` repairs. It must not be used to add missing evidence, user approval, role conclusions, root cause, test results, or retrospective content.
 Use stable identifiers for workflow and evidence relations:
 
 - `当前角色标识`

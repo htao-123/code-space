@@ -27,6 +27,19 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def append_format_repair_record(text: str) -> str:
+    record = (
+        "\n\n## Repair Record - Handoff Format Normalization\n\n"
+        "- 修复类型：format-only\n"
+        "- 修复处理：使用 normalize_handoff_format.py 仅规范 handoff 列表/分隔符/换行格式。\n"
+        "- 负责角色：normalizer\n"
+        "- 是否改变需求含义：否\n"
+        "- 是否改变实现行为：否\n"
+        "- 后续验证：重新运行对应 stage workflow gate。\n"
+    )
+    return text.rstrip() + record
+
+
 def split_items(value: str, prefixes: list[str]) -> list[str]:
     normalized = value.replace("\r\n", "\n")
     normalized = re.sub(r",\s*(?=(" + "|".join(re.escape(prefix) for prefix in prefixes) + r"))", "\n", normalized)
@@ -169,7 +182,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Normalize handoff formatting into gate-friendly shapes.")
     parser.add_argument("--handoff-doc", required=True, help="Path to the handoff document.")
     parser.add_argument("--repo-root", default=".", help="Repository root.")
-    parser.add_argument("--write", action="store_true", help="Write the normalized result back to the file.")
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help=(
+            "Write the normalized result back to the file. Use only for format-only repairs; "
+            "do not use this to add evidence, approval, role conclusions, test results, or retrospectives."
+        ),
+    )
+    parser.add_argument(
+        "--repair-type",
+        choices=["format-only"],
+        help="Required with --write. Only format-only repair may be normalized in place.",
+    )
+    parser.add_argument(
+        "--ack-format-only",
+        action="store_true",
+        help="Required with --write to acknowledge that no facts, approvals, conclusions, or test results are being changed.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
@@ -182,8 +212,23 @@ def main() -> int:
     normalized = normalize_document(original)
 
     if args.write:
-        write_text(handoff_doc, normalized)
+        if args.repair_type != "format-only" or not args.ack_format_only:
+            print("[FAIL] --write requires --repair-type format-only and --ack-format-only.")
+            print()
+            print("Suggested repair record:")
+            print()
+            print("## Repair Record - Handoff Format Normalization")
+            print()
+            print("- 修复类型：format-only")
+            print("- 修复处理：使用 normalize_handoff_format.py 仅规范 handoff 列表/分隔符/换行格式。")
+            print("- 负责角色：")
+            print("- 是否改变需求含义：否")
+            print("- 是否改变实现行为：否")
+            print("- 后续验证：重新运行对应 stage workflow gate。")
+            return 1
+        write_text(handoff_doc, append_format_repair_record(normalized))
         print(f"[PASS] Normalized handoff document in place: {handoff_doc}")
+        print("[INFO] Appended a task-level format-only Repair Record.")
     else:
         sys.stdout.write(normalized)
     return 0

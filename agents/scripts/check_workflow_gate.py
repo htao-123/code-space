@@ -125,6 +125,49 @@ STAGE_EXPECTATIONS = {
     },
 }
 
+PRE_IMPLEMENTATION_CHAIN_CURRENT_ROLE_IDS = [
+    "requirement-analyst",
+    "architect",
+    "code-investigator",
+    "solution-designer",
+]
+
+PRE_IMPLEMENTATION_CHAIN_NEXT_ROLE_IDS = [
+    "architect",
+    "code-investigator",
+    "solution-designer",
+    "implementer",
+]
+
+FULL_CHAIN_CURRENT_ROLE_IDS = [
+    "requirement-analyst",
+    "architect",
+    "code-investigator",
+    "solution-designer",
+    "implementer",
+    "reviewer",
+    "tester",
+    "knowledge-keeper",
+]
+
+FULL_CHAIN_NEXT_ROLE_IDS = [
+    "architect",
+    "code-investigator",
+    "solution-designer",
+    "implementer",
+    "reviewer",
+    "tester",
+    "knowledge-keeper",
+    "terminal",
+]
+
+ALLOWED_REPAIR_TYPES = {
+    "format-only",
+    "evidence-correction",
+    "content-regeneration",
+    "workflow-repair",
+}
+
 
 def repo_relative(path: Path, repo_root: Path) -> str:
     try:
@@ -141,7 +184,11 @@ def extract_last_handoff_block(text: str) -> str:
     positions = [match.start() for match in re.finditer(re.escape("【角色结论】"), text)]
     if not positions:
         return ""
-    return text[positions[-1]:]
+    start = positions[-1]
+    next_heading = text.find("\n## ", start)
+    if next_heading == -1:
+        return text[start:]
+    return text[start:next_heading]
 
 
 def extract_all_handoff_blocks(text: str) -> list[str]:
@@ -151,6 +198,9 @@ def extract_all_handoff_blocks(text: str) -> list[str]:
     blocks: list[str] = []
     for index, start in enumerate(positions):
         end = positions[index + 1] if index + 1 < len(positions) else len(text)
+        next_heading = text.find("\n## ", start)
+        if next_heading != -1 and next_heading < end:
+            end = next_heading
         blocks.append(text[start:end])
     return blocks
 
@@ -161,6 +211,100 @@ def extract_label_value(text: str, label: str) -> str | None:
     if match is None:
         return None
     return match.group(1).strip()
+
+
+def find_latest_role_chain(
+    blocks: list[str],
+    current_role_ids: list[str],
+    next_role_ids: list[str],
+) -> list[int]:
+    selected_reversed: list[int] = []
+    before_index = len(blocks)
+    for current_role_id, next_role_id in zip(
+        reversed(current_role_ids),
+        reversed(next_role_ids),
+    ):
+        found_index = None
+        for index in range(before_index - 1, -1, -1):
+            block = blocks[index]
+            if (
+                extract_label_value(block, "- 当前角色标识：") == current_role_id
+                and extract_label_value(block, "- 下一角色标识：") == next_role_id
+            ):
+                found_index = index
+                break
+        if found_index is None:
+            return []
+        selected_reversed.append(found_index)
+        before_index = found_index
+    return list(reversed(selected_reversed))
+
+
+def validate_metadata_chain(
+    metadata_chain: list[dict[str, str]],
+    errors: list[str],
+    label: str,
+) -> None:
+    if not metadata_chain:
+        return
+    requirement_ids = {metadata["requirement_id"] for metadata in metadata_chain}
+    if len(requirement_ids) != 1:
+        errors.append(
+            f"{label} mixes multiple requirement identifiers: "
+            f"{', '.join(sorted(requirement_ids))}"
+        )
+    declared_project_paths = {metadata["project_path"] for metadata in metadata_chain}
+    if len(declared_project_paths) != 1:
+        errors.append(
+            f"{label} mixes multiple declared project paths: "
+            f"{', '.join(sorted(declared_project_paths))}"
+        )
+    handoff_ids = [metadata["handoff_id"] for metadata in metadata_chain]
+    if len(set(handoff_ids)) != len(handoff_ids):
+        errors.append(f"{label} reuses duplicate handoff identifiers.")
+
+
+def extract_repair_record_blocks(text: str) -> list[str]:
+    pattern = re.compile(r"(?m)^## Repair Record[^\n]*\n")
+    matches = list(pattern.finditer(text))
+    blocks: list[str] = []
+    for index, match in enumerate(matches):
+        start = match.start()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        next_handoff = text.find("\n## ", match.end())
+        if next_handoff != -1 and next_handoff < end:
+            end = next_handoff
+        blocks.append(text[start:end])
+    return blocks
+
+
+def check_repair_records(text: str, errors: list[str]) -> None:
+    repair_records = extract_repair_record_blocks(text)
+    if (
+        ("Workflow gate check failed" in text or "Normalized handoff document in place" in text)
+        and not repair_records
+    ):
+        errors.append(
+            "Task document records a gate failure or normalizer write but has no ## Repair Record block."
+        )
+    for index, block in enumerate(repair_records, start=1):
+        label = f"Repair Record #{index}"
+        repair_type = extract_label_value(block, "- 修复类型：")
+        required_labels = [
+            "- 修复类型：",
+            "- 修复处理：",
+            "- 负责角色：",
+            "- 是否改变需求含义：",
+            "- 是否改变实现行为：",
+            "- 后续验证：",
+        ]
+        missing = [item for item in required_labels if extract_label_value(block, item) is None]
+        if missing:
+            errors.append(f"{label} missing required fields: {', '.join(missing)}")
+        if repair_type is not None and repair_type not in ALLOWED_REPAIR_TYPES:
+            errors.append(
+                f"{label} has unsupported repair type: {repair_type}"
+            )
 
 
 def resolve_declared_project_path(value: str, repo_root: Path) -> Path:
@@ -517,6 +661,8 @@ def main() -> int:
 
     check_file_exists(task_doc, "Task document", errors, repo_root)
     ensure_within_repo(task_doc, repo_root, "Task document", errors)
+    if task_doc.exists() and not task_doc.is_dir():
+        check_repair_records(read_text(task_doc), errors)
 
     if not project_path.exists():
       errors.append(f"Project path not found: {repo_relative(project_path, repo_root)}")
@@ -573,38 +719,90 @@ def main() -> int:
 
     expectations = STAGE_EXPECTATIONS.get(args.stage)
     metadata_chain: list[dict[str, str]] = []
+    chain_block_indexes: list[int] = []
+    if args.stage == "implementer" and len(handoff_docs) == 1:
+        handoff_doc = handoff_docs[0]
+        check_file_exists(handoff_doc, "Handoff document", errors, repo_root)
+        if handoff_doc.exists() and not handoff_doc.is_dir():
+            blocks = extract_all_handoff_blocks(read_text(handoff_doc))
+            chain_block_indexes = find_latest_role_chain(
+                blocks,
+                PRE_IMPLEMENTATION_CHAIN_CURRENT_ROLE_IDS,
+                PRE_IMPLEMENTATION_CHAIN_NEXT_ROLE_IDS,
+            )
+            if not chain_block_indexes:
+                errors.append(
+                    "implementer stage requires a full pre-implementation chain "
+                    "with requirement-analyst, architect, code-investigator, and solution-designer handoffs."
+                )
+            else:
+                for index, block_index in enumerate(chain_block_indexes):
+                    block = blocks[block_index]
+                    metadata = check_handoff_doc(
+                        handoff_doc,
+                        errors,
+                        repo_root,
+                        project_path,
+                        expected_current_role_id=PRE_IMPLEMENTATION_CHAIN_CURRENT_ROLE_IDS[index],
+                        expected_next_role_id=PRE_IMPLEMENTATION_CHAIN_NEXT_ROLE_IDS[index],
+                        expected_work_type=args.work_type,
+                        block_override=block,
+                        block_label=(
+                            f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}"
+                        ),
+                    )
+                    if metadata is not None:
+                        metadata_chain.append(metadata)
+                validate_metadata_chain(
+                    metadata_chain,
+                    errors,
+                    "Pre-implementation chain",
+                )
     if expectations:
         expected_current_role_ids = expectations["current_role_ids"]
         expected_next_role_ids = expectations["next_role_ids"]
-        if args.stage == "complete" and len(handoff_docs) == 1:
-            handoff_doc = handoff_docs[0]
-            check_file_exists(handoff_doc, "Handoff document", errors, repo_root)
-            if handoff_doc.exists() and not handoff_doc.is_dir():
-                blocks = extract_all_handoff_blocks(read_text(handoff_doc))
-                if len(blocks) < len(expected_next_role_ids):
-                    errors.append(
-                        f"complete stage requires at least {len(expected_next_role_ids)} handoff blocks in "
-                        f"{repo_relative(handoff_doc, repo_root)}."
+        if args.stage == "complete":
+            if len(handoff_docs) != 1:
+                errors.append(
+                    "complete stage requires exactly one --handoff-doc containing the full "
+                    "8-role handoff chain from requirement-analyst through knowledge-keeper; "
+                    "do not pass only implementer/reviewer/tester/knowledge-keeper handoff docs."
+                )
+                expectations = None
+            else:
+                handoff_doc = handoff_docs[0]
+                check_file_exists(handoff_doc, "Handoff document", errors, repo_root)
+                if handoff_doc.exists() and not handoff_doc.is_dir():
+                    blocks = extract_all_handoff_blocks(read_text(handoff_doc))
+                    chain_block_indexes = find_latest_role_chain(
+                        blocks,
+                        FULL_CHAIN_CURRENT_ROLE_IDS,
+                        FULL_CHAIN_NEXT_ROLE_IDS,
                     )
-                else:
-                    recent_blocks = blocks[-len(expected_next_role_ids):]
-                    for index, block in enumerate(recent_blocks):
-                        metadata = check_handoff_doc(
-                            handoff_doc,
-                            errors,
-                            repo_root,
-                            project_path,
-                            expected_current_role_id=expected_current_role_ids[index],
-                            expected_next_role_id=expected_next_role_ids[index],
-                            expected_work_type=args.work_type,
-                            block_override=block,
-                            block_label=(
-                                f"{repo_relative(handoff_doc, repo_root)}#handoff-{len(blocks) - len(recent_blocks) + index + 1}"
-                            ),
+                    if not chain_block_indexes:
+                        errors.append(
+                            "complete stage requires a full 8-role handoff chain from "
+                            "requirement-analyst through knowledge-keeper."
                         )
-                        if metadata is not None:
-                            metadata_chain.append(metadata)
-            expectations = None
+                    else:
+                        for index, block_index in enumerate(chain_block_indexes):
+                            block = blocks[block_index]
+                            metadata = check_handoff_doc(
+                                handoff_doc,
+                                errors,
+                                repo_root,
+                                project_path,
+                                expected_current_role_id=FULL_CHAIN_CURRENT_ROLE_IDS[index],
+                                expected_next_role_id=FULL_CHAIN_NEXT_ROLE_IDS[index],
+                                expected_work_type=args.work_type,
+                                block_override=block,
+                                block_label=(
+                                    f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}"
+                                ),
+                            )
+                            if metadata is not None:
+                                metadata_chain.append(metadata)
+                expectations = None
         if expectations is None:
             pass
         elif len(expected_next_role_ids) == 1:
@@ -616,7 +814,7 @@ def main() -> int:
             if len(handoff_docs) != len(expected_next_role_ids):
                 errors.append(
                     f"{args.stage} stage requires exactly {len(expected_next_role_ids)} --handoff-doc values "
-                    "to validate the closing handoff chain."
+                    "to validate the expected stage handoff chain."
                 )
         if expectations is not None:
             for index, handoff_doc in enumerate(handoff_docs):
@@ -650,21 +848,7 @@ def main() -> int:
                 metadata_chain.append(metadata)
 
     if args.stage == "complete" and metadata_chain:
-        requirement_ids = {metadata["requirement_id"] for metadata in metadata_chain}
-        if len(requirement_ids) != 1:
-            errors.append(
-                "Completion chain mixes multiple requirement identifiers: "
-                f"{', '.join(sorted(requirement_ids))}"
-            )
-        declared_project_paths = {metadata["project_path"] for metadata in metadata_chain}
-        if len(declared_project_paths) != 1:
-            errors.append(
-                "Completion chain mixes multiple declared project paths: "
-                f"{', '.join(sorted(declared_project_paths))}"
-            )
-        handoff_ids = [metadata["handoff_id"] for metadata in metadata_chain]
-        if len(set(handoff_ids)) != len(handoff_ids):
-            errors.append("Completion chain reuses duplicate handoff identifiers.")
+        validate_metadata_chain(metadata_chain, errors, "Completion chain")
 
     if args.stage in {"implementer", "reviewer", "tester", "knowledge-keeper", "complete"}:
         if not handoff_docs:
@@ -687,20 +871,16 @@ def main() -> int:
 
     quality_script = repo_root / "agents/scripts/check_handoff_quality.py"
     quality_targets: list[tuple[Path, int | None, str]] = []
-    if args.stage == "complete" and len(handoff_docs) == 1:
+    if args.stage in {"implementer", "complete"} and len(handoff_docs) == 1 and chain_block_indexes:
         handoff_doc = handoff_docs[0]
-        if handoff_doc.exists() and not handoff_doc.is_dir():
-            blocks = extract_all_handoff_blocks(read_text(handoff_doc))
-            if len(blocks) >= len(STAGE_EXPECTATIONS["complete"]["current_role_ids"]):
-                start_index = len(blocks) - len(STAGE_EXPECTATIONS["complete"]["current_role_ids"])
-                for block_index in range(start_index, len(blocks)):
-                    quality_targets.append(
-                        (
-                            handoff_doc,
-                            block_index,
-                            f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}",
-                        )
-                    )
+        for block_index in chain_block_indexes:
+            quality_targets.append(
+                (
+                    handoff_doc,
+                    block_index,
+                    f"{repo_relative(handoff_doc, repo_root)}#handoff-{block_index + 1}",
+                )
+            )
     else:
         for handoff_doc in handoff_docs:
             quality_targets.append((handoff_doc, None, repo_relative(handoff_doc, repo_root)))

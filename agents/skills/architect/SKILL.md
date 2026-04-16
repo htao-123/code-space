@@ -31,12 +31,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, and schema/migration labels required by the pipeline contract. Use the role template when in doubt.
 
 Under `【交付物】`, include:
 
@@ -66,6 +70,7 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: code-investigator`
-- allowed inputs: original request, requirement handoff, this handoff, and repository facts
-- non-goals: solution design and coding
+- `下一角色：侦查员【负责收集代码事实、调用链与现有实现证据】`
+- `可用输入：` original request, requirement handoff, this handoff, and repository facts
+- `非目标：` solution design and coding
+- `完成条件：` investigator has a valid module and boundary scope

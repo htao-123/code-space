@@ -31,12 +31,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, requirement retrospective, self-review, self-correction, workflow retrospective, retained practices, rule-fix candidates, rule-update status, and any repair classification required by the pipeline contract.
 
 Under `【交付物】`, include:
 
@@ -61,4 +65,9 @@ Under `【禁止事项】`, include:
 
 ## Handoff
 
-In `【交接给下一个角色】`, state that this is the terminal role and the pipeline restarts only from a new requirement.
+In `【交接给下一个角色】`, set:
+
+- `下一角色：无【当前需求已完成完整流程】`
+- `可用输入：` current requirement's complete handoff chain
+- `非目标：` continuing into a new requirement
+- `完成条件：` completion gate can validate the closing chain

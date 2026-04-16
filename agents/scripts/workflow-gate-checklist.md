@@ -9,7 +9,8 @@ Use this checklist only when the automatic gate script cannot run because of loc
 - the runtime is missing and cannot be repaired quickly
 
 Do not use this checklist just for convenience. Prefer the automatic gate whenever possible.
-If the automatic gate is failing only because of handoff formatting shape, normalize the handoff document first with `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write` before falling back to this checklist.
+If the automatic gate is failing only because of handoff formatting shape, normalize the handoff document first with `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write --repair-type format-only --ack-format-only` before falling back to this checklist.
+Use normalization only for `format-only` repair. Do not normalize in missing evidence, user approval, role conclusions, root-cause summaries, test results, or retrospective content.
 
 ## Manual Checks
 
@@ -24,6 +25,12 @@ Mark each item before implementation begins.
 ### 2. Workflow Handoffs
 
 - [ ] The latest required handoff exists
+- [ ] If a prior gate failed, the task document records the failed gate command or failure summary
+- [ ] If a prior gate failed, the repair is classified as one of: `format-only`, `evidence-correction`, `content-regeneration`, `workflow-repair`
+- [ ] If a prior gate failed or the normalizer wrote the file, a task-level `## Repair Record` exists
+- [ ] Each `## Repair Record` records `修复类型 / 修复处理 / 负责角色 / 是否改变需求含义 / 是否改变实现行为 / 后续验证`
+- [ ] If the repair is not `format-only`, the repair appended a correction record or returned to the responsible role instead of silently editing a completed block
+- [ ] Completed role handoff blocks were not silently overwritten after downstream roles consumed them
 - [ ] It contains all required sections:
   - `【已核实输入】`
   - `【调研发现】`
@@ -59,7 +66,7 @@ Mark each item before implementation begins.
   - `- 需求标识：`
   - `- 项目落点：`
   - `- 下一角色标识：`
-- [ ] 非 `complete` 阶段校验的是当前文档的最新 handoff block；`complete` 阶段校验的是同一需求最近的收尾链 block
+- [ ] 非 `complete` 阶段校验的是当前文档的最新 handoff block；`complete` 阶段校验的是同一需求最近的完整 8 角色链 block
 - [ ] 被校验的 handoff block `下一角色标识` matches the validated stage transition
 - [ ] 被校验的 handoff block `当前角色标识` matches the validated stage transition
 - [ ] The current `当前角色标识` content does not violate its role-specific禁止事项
@@ -72,6 +79,7 @@ Mark each item before implementation begins.
 - [ ] `事实清单` uses `FACT-* -> 证据摘录：摘录内容` format
 - [ ] `证据映射` binds each fact ID to `EVID-*::关键词::摘录`
 - [ ] 非 `complete` 阶段的 gate 一次只校验一个 `--handoff-doc`
+- [ ] `implementer` 阶段校验完整前链：`requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer`
 - [ ] 如果当前被校验 block 的 `当前角色标识` 是 `tester`，则必须记录：
   - `- 运行时验证：`
   - `- 外部依赖验证：`
@@ -129,16 +137,21 @@ Mark each item before implementation begins.
 
 Implementation may start only when every applicable checkbox is complete.
 
-Before treating a requirement as finished, confirm that the final block in the validated closing chain routes to:
+Before treating a requirement as finished, confirm that the final block in the validated full 8-role chain routes to:
 
 - `- 下一角色：无`
 
-Also confirm that the validated closing chain exists and is ordered:
+Also confirm that the validated full 8-role chain exists in one task document and is ordered:
 
+- requirement-analyst handoff -> `- 下一角色：架构师`
+- architect handoff -> `- 下一角色：代码调查员`
+- code-investigator handoff -> `- 下一角色：方案设计师`
+- solution-designer handoff -> `- 下一角色：开发者`
 - implementer handoff -> `- 下一角色：审核员`
 - reviewer handoff -> `- 下一角色：测试员`
 - tester handoff -> `- 下一角色：知识归档员`
 - knowledge-keeper handoff -> `- 下一角色：无`
-- all four closing handoffs share the same `需求标识`
-- all four closing handoffs share the same `项目落点`
+- all eight role handoffs share the same `需求标识`
+- completion is not run with only implementer/reviewer/tester/knowledge-keeper handoff documents
+- all eight role handoffs share the same `项目落点`
 - the terminal archive records workflow retrospective learnings and rule-update status

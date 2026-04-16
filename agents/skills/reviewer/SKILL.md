@@ -31,12 +31,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, and confirmation labels required by the pipeline contract. Use the role template so review findings and residual risks remain gate-checkable.
 
 Under `【交付物】`, include:
 
@@ -64,6 +68,7 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: tester`
-- allowed inputs: original request, solution handoff, changed code, this handoff
-- done when: each major risk has a matching test or an explicit blocker
+- `下一角色：测试员【负责验证正常路径、异常路径与边界情况】`
+- `可用输入：` original request, solution handoff, changed code, this handoff
+- `非目标：` direct code edits
+- `完成条件：` each major risk has a matching test or an explicit blocker

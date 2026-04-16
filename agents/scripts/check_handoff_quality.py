@@ -76,6 +76,21 @@ REQUIRED_QUALITY_LABELS = [
     "- 主要权衡：",
 ]
 
+REPAIR_TYPE_LABEL = "- 修复类型："
+REPAIR_ACTION_LABEL = "- 修复处理："
+ALLOWED_REPAIR_TYPES = {
+    "format-only",
+    "evidence-correction",
+    "content-regeneration",
+    "workflow-repair",
+}
+REPAIR_INDICATOR_RE = re.compile(
+    r"(门禁.*(?:失败|发现|拦截)|gate.*(?:failed|failure|失败)|"
+    r"(?:修正|补齐|补写).*(?:handoff|证据|字段|批准|文档)|"
+    r"normalize_handoff_format)",
+    re.IGNORECASE,
+)
+
 URL_RE = re.compile(r"^https?://\S+$")
 FACT_LINE_RE = re.compile(r"(?m)^(FACT-\d+)\s*->\s*证据摘录：(.+?)\s*$")
 INTERNAL_EVIDENCE_ITEM_RE = re.compile(r"^(EVID-IN-\d+)\s*->\s*(.+?)$")
@@ -158,6 +173,17 @@ def has_meaningful_content(text: str) -> bool:
     return normalized not in {"无", "未填写", "待补充", "待确认", "N/A", "n/a"}
 
 
+def normalize_bullet_block_value(text: str) -> str:
+    parts: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            stripped = stripped[2:].strip()
+        if stripped:
+            parts.append(stripped)
+    return "\n".join(parts).strip()
+
+
 def infer_external_dependency(
     block: str,
     fact_text_by_id: dict[str, str],
@@ -176,16 +202,14 @@ def infer_external_dependency(
         r"/currencies",
     ]
     searchable_parts = [block, *fact_text_by_id.values()]
-    for evidence_path in internal_evidence_items.values():
-        candidate = (repo_root / evidence_path).resolve() if not Path(evidence_path).is_absolute() else Path(evidence_path).resolve()
-        if candidate.exists() and candidate.is_file():
-            searchable_parts.append(read_text(candidate))
     for snapshot_path, source_url in external_evidence_items.values():
-        candidate = (repo_root / snapshot_path).resolve() if not Path(snapshot_path).is_absolute() else Path(snapshot_path).resolve()
         searchable_parts.append(source_url)
-        if candidate.exists() and candidate.is_file():
-            searchable_parts.append(read_text(candidate))
     searchable = "\n".join(searchable_parts)
+    searchable = re.sub(
+        r"(?m)^\s*-\s*是否涉及外部 API / 浏览器运行时 / 网络请求:.*$",
+        "",
+        searchable,
+    )
     return any(re.search(pattern, searchable, re.IGNORECASE) for pattern in dependency_patterns)
 
 
@@ -252,6 +276,21 @@ def is_user_solution_approval(value: str | None) -> bool:
             re.IGNORECASE,
         )
     )
+
+
+def remove_mandatory_label_lines(text: str) -> str:
+    labels = [
+        *REQUIRED_QUALITY_LABELS,
+        REPAIR_TYPE_LABEL,
+        REPAIR_ACTION_LABEL,
+    ]
+    kept: list[str] = []
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if any(stripped.startswith(label) for label in labels):
+            continue
+        kept.append(line)
+    return "\n".join(kept)
 
 
 def parse_mapping_items(items_raw: list[str]) -> tuple[list[tuple[str, str, str, str]], list[str]]:
@@ -377,6 +416,7 @@ def main() -> int:
                 extract_section(block, "【校验标准】", ["【禁止事项】"]),
             ]
         )
+        body_forbidden_scan = remove_mandatory_label_lines(body_forbidden_scan)
         for pattern in forbidden_patterns:
             if re.search(pattern, body_forbidden_scan):
                 errors.append(f"Role id '{role_id}' contains forbidden content matching: {pattern}")
@@ -614,6 +654,25 @@ def main() -> int:
             errors.append(
                 "Knowledge-keeper handoff identifies a workflow rule/process problem but records no rule update; update the rule or record an explicit blocker."
             )
+        if REPAIR_INDICATOR_RE.search(block):
+            repair_type = extract_label_value(block, REPAIR_TYPE_LABEL)
+            repair_action = extract_label_value(block, REPAIR_ACTION_LABEL)
+            if repair_type is None or repair_type not in ALLOWED_REPAIR_TYPES:
+                errors.append(
+                    "Knowledge-keeper handoff mentions gate failure, normalization, or handoff repair but does not classify it as "
+                    "format-only, evidence-correction, content-regeneration, or workflow-repair."
+                )
+            if is_empty_or_not_applicable(repair_action):
+                errors.append(
+                    "Knowledge-keeper handoff mentions gate failure, normalization, or handoff repair but does not record 修复处理."
+                )
+            if (
+                repair_type in {"evidence-correction", "content-regeneration", "workflow-repair"}
+                and is_no_change_value(remove_or_fix)
+            ):
+                errors.append(
+                    "Knowledge-keeper handoff records a non-format repair but says no workflow rule/process problem existed."
+                )
 
     if role_id == "code-investigator":
         schema_status = extract_label_value(block, "- 历史数据结构状态：")
@@ -697,7 +756,8 @@ def main() -> int:
             errors.append("Tester handoff must provide substantive runtime verification details.")
         if not has_meaningful_content(external_dependency_verification):
             errors.append("Tester handoff must provide substantive external-dependency verification details.")
-        if unverified_reason.strip() == "":
+        normalized_unverified_reason = normalize_bullet_block_value(unverified_reason)
+        if normalized_unverified_reason == "":
             errors.append("Tester handoff must provide an explicit unverified-reason field value.")
 
         external_dependency_involved = infer_external_dependency(
@@ -719,7 +779,7 @@ def main() -> int:
         success_path_not_verified = bool(success_path_status and re.search(r"(未验证|blocked|阻塞|无法验证|未实际验证|否)", success_path_status))
         runtime_not_run = re.search(r"(未实际运行|未运行|blocked|阻塞|无法运行)", runtime_verification)
 
-        if (success_path_not_verified or runtime_not_run) and unverified_reason.strip() in {"", "无"}:
+        if (success_path_not_verified or runtime_not_run) and normalized_unverified_reason in {"", "无"}:
             errors.append(
                 "Tester handoff cannot mark runtime or external success-path verification incomplete while leaving unverified reason empty or '无'."
             )
@@ -727,8 +787,8 @@ def main() -> int:
         if (
             not success_path_not_verified
             and not runtime_not_run
-            and unverified_reason.strip() not in {"", "无"}
-            and has_meaningful_content(unverified_reason)
+            and normalized_unverified_reason not in {"", "无"}
+            and has_meaningful_content(normalized_unverified_reason)
         ):
             errors.append(
                 "Tester handoff should not record a non-empty unverified reason after claiming runtime and external success-path verification are complete."

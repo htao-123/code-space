@@ -37,12 +37,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, gate result, research, evidence, fact mapping, inference, unknown, confirmation, migration implementation, and compatibility-branch labels required by the pipeline contract. Do not code until the implementer gate has validated the full pre-implementation chain.
 
 Under `【交付物】`, include:
 
@@ -74,6 +78,7 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: reviewer`
-- allowed inputs: original request, solution handoff, changed code, this handoff
-- non-goals: rewriting requirements or architecture
+- `下一角色：审核员【负责检查越界修改、逻辑风险与残余问题】`
+- `可用输入：` original request, solution handoff, changed code, this handoff
+- `非目标：` rewriting requirements or architecture
+- `完成条件：` reviewer has changed files, implementation intent, and gate evidence

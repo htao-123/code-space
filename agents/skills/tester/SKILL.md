@@ -31,12 +31,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, runtime verification, external-dependency verification, and unverified-reason labels required by the pipeline contract.
 
 Under `【交付物】`, include:
 
@@ -64,6 +68,7 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: knowledge-keeper`
-- allowed inputs: original request, design handoff, review handoff, this handoff
-- non-goals: inventing results that were not tested
+- `下一角色：知识归档员【负责沉淀问题记录、修复方式与可复用经验】`
+- `可用输入：` original request, design handoff, review handoff, this handoff
+- `非目标：` inventing results that were not tested
+- `完成条件：` validated facts and unverified items are both explicit

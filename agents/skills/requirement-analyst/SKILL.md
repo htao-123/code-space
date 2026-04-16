@@ -31,12 +31,16 @@ Always output these sections in order:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, and confirmation labels required by the pipeline contract. Use the role template when in doubt.
 
 Under `【交付物】`, include exactly:
 
@@ -67,6 +71,7 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: architect`
-- allowed inputs: original request plus this handoff only
-- non-goals: implementation and technical design
+- `下一角色：建筑师【负责确定改动落点、模块边界与结构约束】`
+- `可用输入：` original request plus this handoff only
+- `非目标：` implementation and technical design
+- `完成条件：` architect has a valid requirement handoff

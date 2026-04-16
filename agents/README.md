@@ -27,6 +27,13 @@ Every completed requirement must end with a requirement retrospective.
 Every completed requirement must record self-review and self-correction in the terminal knowledge-keeper handoff.
 Every completed requirement must also include a workflow retrospective that checks whether this workflow exposed any rule or process issue.
 Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise record that no rule update was needed.
+Do not silently rewrite completed handoff blocks after a gate failure.
+Every gate failure repair must be classified as `format-only`, `evidence-correction`, `content-regeneration`, or `workflow-repair`.
+Only `format-only` repair may use the normalizer directly; content or workflow repair must append a correction record or return to the responsible role.
+When the normalizer writes a file, it must also append a task-level `format-only` repair record.
+Implementation entry must validate the full requirement -> architecture -> investigation -> solution chain, not only the final solution block.
+Completion must validate the full requirement -> architecture -> investigation -> solution -> implementation -> review -> test -> archive chain.
+Repair records are task-level `## Repair Record` blocks, not informal prose inside a later role.
 
 If an agent or user request conflicts with this workflow, the conflict must be stated explicitly before any work continues.
 
@@ -128,10 +135,12 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
 The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
-The completion gate is expected to validate the closing chain from implementer through knowledge-keeper.
+The implementation gate is also a pre-implementation chain gate: the recent handoff chain must route `requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer`.
+The completion gate validates one task document containing the full 8-role chain from requirement-analyst through knowledge-keeper; do not run completion with only implementer/reviewer/tester/knowledge-keeper handoff documents.
 The workflow gate also runs the handoff quality checker by default.
 The quality checker is mandatory during normal workflow execution.
-If the gate is blocked only by handoff formatting shape, run the handoff format normalizer before treating the requirement as blocked.
+If the gate is blocked only by handoff formatting shape, run the handoff format normalizer with explicit `--repair-type format-only --ack-format-only` before treating the requirement as blocked; the normalizer appends a task-level `format-only` repair record.
+Do not use normalization to add missing facts, approvals, role conclusions, test results, or retrospective conclusions.
 Relationship validation now prefers stable IDs over free-text matching.
 Use `当前角色标识 / 下一角色标识 / 当前交接标识` for workflow routing.
 Treat `当前角色` as display-only text, not a gate source of truth.

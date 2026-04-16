@@ -30,6 +30,29 @@ Every completed requirement must include a requirement retrospective.
 Every completed requirement must include self-review and self-correction records in the terminal `knowledge-keeper` handoff.
 Every completed requirement must also include a workflow retrospective that records whether this workflow exposed any rule or process issue.
 Rule updates are mandatory only when that retrospective identifies a real rule or process problem; otherwise the terminal archive should record that no rule update was needed.
+Completed role handoff blocks may not be silently rewritten to make a failed gate pass.
+Every gate failure repair must be classified before the gate is rerun:
+
+- `format-only`: whitespace, list shape, separator, or mechanically equivalent formatting changes.
+- `evidence-correction`: evidence id, excerpt, source, or mapping correction that changes what the gate can verify.
+- `content-regeneration`: role conclusion, requirement, design, implementation, review, test, approval, or retrospective content must be regenerated.
+- `workflow-repair`: the previous role did not actually complete or the role chain was skipped/merged.
+
+Only `format-only` repair may use `normalize_handoff_format.py` directly.
+Evidence, content, and workflow repair must append an explicit correction record or route back to the responsible role.
+When `normalize_handoff_format.py --write --repair-type format-only --ack-format-only` writes a file, it must append a task-level `format-only` repair record.
+Implementation may begin only after the full pre-implementation chain has been validated: `requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer`.
+Completion may pass only after the full chain has been validated: `requirement-analyst -> architect -> code-investigator -> solution-designer -> implementer -> reviewer -> tester -> knowledge-keeper -> terminal`.
+Repair records must be written as task-level `## Repair Record` blocks with:
+
+```md
+- 修复类型：
+- 修复处理：
+- 负责角色：
+- 是否改变需求含义：
+- 是否改变实现行为：
+- 后续验证：
+```
 
 ## Mandatory Handoff Shape
 
@@ -353,9 +376,13 @@ This backfill may be created during `requirement-analyst` or `architect`, but do
 
 When the gate is blocked only by handoff formatting shape rather than missing business content:
 
-1. run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write`
-2. re-run the workflow gate
-3. only treat the requirement as blocked if normalization does not resolve the issue
+1. run `python3 agents/scripts/normalize_handoff_format.py --handoff-doc <doc> --write --repair-type format-only --ack-format-only`
+2. keep the task-level `format-only` repair record appended by the normalizer
+3. re-run the workflow gate
+4. only treat the requirement as blocked if normalization does not resolve the issue
+
+Normalization must not add or change facts, evidence meaning, user approval, role conclusions, root-cause summaries, test outcomes, or retrospective conclusions.
+If the gate failure requires those changes, record a repair type other than `format-only` and append a correction record or return to the responsible role.
 
 ## Research-First Rule
 
@@ -421,7 +448,7 @@ Use it to verify:
 - handoff documents declare evidence quality fields explicitly
 - for non-`complete` stages, the current document's latest handoff block routes to the expected next role id for the validated stage
 - for non-`complete` stages, the current document's latest handoff block declares the expected current role id for the validated stage
-- for `complete` stage, the validated closing handoff chain routes through the expected role ids in order
+- for `complete` stage, the validated full handoff chain routes through all expected role ids from `requirement-analyst` through `knowledge-keeper` in order
 - implementation targets stay inside the approved project path
 - existing-project work declares documentation state and any required backfill artifact
 - existing-project work points to the actual documentation artifact used for that declaration
@@ -451,6 +478,8 @@ Implementation may begin only after one of these is true:
 - the manual checklist has been completed and recorded in the task document
 
 Use stage-specific gate validation as the workflow advances, and use the completion gate before declaring a requirement finished.
-The completion gate should validate the closing handoff chain from implementer to reviewer to tester to knowledge-keeper to terminal.
-The completion gate should also verify that the closing chain shares the same requirement identifier and approved project path.
+Use the implementation gate as a full pre-implementation chain replay, not as a latest-block-only approval check.
+Use the completion gate as a full 8-role chain replay from requirement-analyst to knowledge-keeper.
+The completion gate must receive one task document containing the full 8-role chain and must reject calls that provide only implementer/reviewer/tester/knowledge-keeper handoff documents.
+The completion gate should also verify that all eight role handoffs share the same requirement identifier and approved project path.
 The workflow gate should run the handoff quality checker unconditionally during normal workflow execution.

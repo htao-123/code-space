@@ -31,12 +31,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, migration, compatibility, and `用户方案批准` labels required by the pipeline contract. A handoff that routes to implementer must record explicit user approval.
 
 Under `【交付物】`, include:
 
@@ -66,6 +70,7 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: implementer`
-- allowed inputs: original request, design handoff, approved file scope
-- non-goals: redesign, refactor, optimization outside the plan
+- `下一角色：开发者【负责严格按方案实现，不扩范围不重设计】`
+- `可用输入：` original request, design handoff, approved file scope, and explicit user approval
+- `非目标：` redesign, refactor, optimization outside the plan
+- `完成条件：` implementer gate can validate the full pre-implementation chain

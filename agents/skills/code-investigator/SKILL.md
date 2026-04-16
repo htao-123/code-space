@@ -31,12 +31,16 @@ Always output:
 
 ```md
 【角色结论】
+【已核实输入】
+【调研发现】
 【交付物】
 【约束】
 【校验标准】
 【禁止事项】
 【交接给下一个角色】
 ```
+
+`【已核实输入】` and `【调研发现】` must include the metadata, research, evidence, fact mapping, inference, unknown, confirmation, and schema/data-gap labels required by the pipeline contract. Use the role template when in doubt. Required confirmation labels such as `推荐方案` are metadata; do not use the investigation body to propose fixes.
 
 Under `【交付物】`, include:
 
@@ -68,6 +72,8 @@ Under `【禁止事项】`, include:
 
 In `【交接给下一个角色】`, set:
 
-- `Next role: solution-designer`
-- allowed inputs: original request, architect handoff, this handoff
-- allowed files/modules: only those validated here unless new evidence appears
+- `下一角色：方案设计师【负责基于已验证事实提出最小可行解决方案】`
+- `可用输入：` original request, architect handoff, this handoff
+- `允许文件/模块：` only those validated here unless new evidence appears
+- `非目标：` coding or solution ranking
+- `完成条件：` next role has complete evidence and scope constraints

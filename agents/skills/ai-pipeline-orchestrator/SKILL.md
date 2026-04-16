@@ -217,6 +217,8 @@ Under `【停止条件】`, include:
 - generating role outputs on behalf of the next role while claiming orchestration
 - combining multiple roles into one response
 - silently fixing broken handoffs
+- silently editing completed handoffs after a gate failure
+- treating content, evidence, approval, root-cause, test, or retrospective repair as formatting-only normalization
 - allowing unverified work to pass into implementation or archival
 - bypassing this workflow because the agent thinks a shortcut is faster
 - inventing a parallel "lightweight" process without explicit approval
