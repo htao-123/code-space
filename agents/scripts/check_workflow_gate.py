@@ -247,7 +247,7 @@ def validate_project_doc_location(
         return
     if path_is_within(task_doc, agents_root):
         errors.append(
-            "Real-project current project documents must not live under agents/; "
+            "Real-project pipeline documents must not live under agents/; "
             f"move it into the real project path: {repo_relative(task_doc, repo_root)}"
         )
     if not target_paths:
@@ -255,9 +255,9 @@ def validate_project_doc_location(
     doc_scope = project_doc_scope(task_doc, repo_root)
     if doc_scope == repo_root.resolve():
         errors.append(
-            "Real-project current project document must live inside the real project tree, "
+            "Real-project pipeline documents must live inside the real project tree, "
             f"not at repository root: {repo_relative(task_doc, repo_root)}. "
-            "Recommended path: <project>/current-project.md"
+            "Recommended path: <project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md"
         )
         return
     aligned = False
@@ -268,9 +268,9 @@ def validate_project_doc_location(
             break
     if not aligned:
         errors.append(
-            "Current project document must live in the same project tree as at least one validated target path: "
+            "Pipeline document must live in the same project tree as at least one validated target path: "
             f"{repo_relative(task_doc, repo_root)}. "
-            "Recommended path: <project>/current-project.md"
+            "Recommended path: <project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md"
         )
 
 

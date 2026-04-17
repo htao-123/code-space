@@ -32,22 +32,19 @@ If a real workflow-rule or process problem is exposed during project execution, 
 That rule-side governance record must use the fixed `## Rule Governance` section in `agents/docs/context/workflow-system-context.md`.
 Workflow status is declared in project-document frontmatter, not by brittle prose excerpts.
 AI may write a workflow status field to `1` only after the rule-defined condition has already been satisfied.
-When this workflow is used on a real project, that project's current project document must live inside the real project path.
-For real projects, the default current project document path is `<project>/current-project.md`.
-Historical requirement documents belong under `<project>/docs/pipeline/` and are not the default gate input.
-Each historical requirement document maps to exactly one `requirement_id`.
-When a new independent requirement starts, archive the previous current project document into `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md` before starting the new `<project>/current-project.md`.
-When a requirement continues, keep updating the same `<project>/current-project.md` and append history only to that same requirement's archived document when needed.
-During research, `<project>/current-project.md` is the primary workflow input.
-The matching `docs/pipeline/` historical document is a secondary research input used only for prior decisions, stage evolution, earlier handoffs, or evidence indexes for the same requirement.
-Historical documents do not replace the current project document as the default gate-facing source of truth.
+When this workflow is used on a real project, that project's documents must live inside the real project path.
+For real projects, all project documents use unified pipeline documents under `<project>/docs/pipeline/`.
+Each project document maps to exactly one `requirement_id` and serves as both the current working document and historical record.
+When a new independent requirement starts, create a new pipeline document `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md` with unique `requirement_id`.
+When a requirement continues, keep updating the same pipeline document and append evolution history as needed.
+During research, the current requirement's pipeline document is the primary workflow input.
+Historical pipeline documents are secondary research inputs used only for prior decisions, stage evolution, earlier handoffs, or evidence indexes.
 Use these naming rules for real-project workflow artifacts:
-- current project document: `<project>/current-project.md`
-- historical requirement document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
-- requirement id: `<WORKTYPE>-<PROJECT>-<TOPIC>-NNN`
+- project document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
+- requirement id: `<WORKTYPE>-<<PROJECT>-<TOPIC>-NNN`
 - internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
 - external research: `<project>/references/external/<topic>-research-YYYY-MM-DD.md`
-The current project document should store current state, current conclusions, and evidence indexes; long-form raw evidence should default to `references/internal` or `references/external`.
+The project document should store current state, current conclusions, and evidence indexes; long-form raw evidence should default to `references/internal` or `references/external`.
 When modifying the rule system itself under `agents/`, do not create or retain rule-side workflow history documents; update current rules directly.
 Implementation may begin only after the project document declares:
 - `workflow_current_stage: solution-designer`
@@ -57,6 +54,10 @@ Completion may pass only after the project document declares:
 - `workflow_current_stage: knowledge-keeper`
 - `workflow_knowledge_keeper_passed: 1`
 and the full chain can be replayed from requirement-analyst through knowledge-keeper.
+
+For real projects, project documents are located at `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`.
+The current active requirement is the pipeline document with the most recent date that has `workflow_completion_passed: 0`.
+Completed requirements have `workflow_completion_passed: 1` and serve as historical records.
 `agents/docs/` is reserved for current reusable context, not for rule-side workflow history.
 
 ## Mandatory Handoff Shape

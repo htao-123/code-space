@@ -32,22 +32,22 @@ Workflow status lives in project-document frontmatter, not in brittle prose matc
 AI writes frontmatter workflow fields only when the rule-defined condition is already satisfied.
 Implementation entry must validate the full requirement -> architecture -> investigation -> solution chain.
 Completion must validate the full requirement -> architecture -> investigation -> solution -> implementation -> review -> test -> archive chain.
-When this workflow is applied to a real project, that project must keep its own current project document inside the real project path.
-For real projects, the default current project document path is `<project>/current-project.md`.
-Historical requirement documents belong under `<project>/docs/pipeline/` and are not the default gate input.
-Each historical requirement document should represent exactly one requirement.
-When a new independent requirement starts, archive the previous current project document into `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md` before starting the new `<project>/current-project.md`.
-When the work is a continuation of the same requirement, continue updating `<project>/current-project.md` and append history only to that same requirement's archived document if needed.
-During research, read `<project>/current-project.md` first as the primary input.
-Use the matching `docs/pipeline/` historical document only when you need prior decisions, stage evolution, earlier handoffs, or evidence indexes for the same requirement.
-Historical documents are secondary research inputs and must not replace the current project document as the default gate-facing source of truth.
+When this workflow is applied to a real project, that project must keep all pipeline documents under `<project>/docs/pipeline/`.
+For real projects, all pipeline documents use the unified structure: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`.
+Each pipeline document maps to exactly one `requirement_id` and serves as both the current working document and historical record.
+The active requirement is the most recent pipeline document with `workflow_completion_passed: 0`.
+Completed requirements have `workflow_completion_passed: 1` and serve as historical records.
+When a new independent requirement starts, create a new pipeline document under `<project>/docs/pipeline/` with a unique `requirement_id`.
+When the work is a continuation of the same requirement, continue updating the same pipeline document and append evolution history as needed.
+During research, read the current requirement's pipeline document first as the primary input.
+Use historical pipeline documents only when you need prior decisions, stage evolution, earlier handoffs, or evidence indexes for the same or related requirements.
+Historical documents are secondary research inputs and must not replace the current requirement's pipeline document as the default gate-facing source of truth.
 Use these naming rules for real-project workflow artifacts:
-- current project document: `<project>/current-project.md`
-- historical requirement document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
+- pipeline document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
 - requirement id: `<WORKTYPE>-<PROJECT>-<TOPIC>-NNN`
 - internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
 - external research: `<project>/references/external/<topic>-research-YYYY-MM-DD.md`
-The current project document should keep current state, current conclusions, and evidence indexes; long-form raw evidence belongs in `references/internal` or `references/external` by default.
+The current requirement's pipeline document should keep current state, current conclusions, and evidence indexes; long-form raw evidence belongs in `references/internal` or `references/external` by default.
 Rules-side historical workflow documents should not accumulate under `agents/docs/`.
 `agents/docs/` is reserved for current reusable context, not for rule-system self-edit history.
 
@@ -126,12 +126,11 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - No agent may replace this workflow with its own improvised process.
 - If there is any doubt, fall back to the orchestrator instead of continuing free-form.
 - New builds or substantial subprojects must live in a dedicated folder instead of the repository root.
-- Development is document-first: create or update the current project document before implementation so the workflow does not depend on memory.
-- For real project work, that current project document belongs inside the real project path and should default to `<project>/current-project.md`.
-- Historical requirement documents should default to `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`.
-- `docs/pipeline/` documents are history artifacts, not the default gate input.
-- Each historical requirement document maps to exactly one `requirement_id`.
-- New independent requirements archive the previous `current-project.md` into `docs/pipeline/` before starting a new current document.
+- Development is document-first: create or update the pipeline document before implementation so the workflow does not depend on memory.
+- For real project work, all pipeline documents belong under `<project>/docs/pipeline/`.
+- Each pipeline document maps to exactly one `requirement_id`.
+- The active requirement is the most recent pipeline document with `workflow_completion_passed: 0`.
+- New independent requirements create a new pipeline document with a unique `requirement_id`.
 - Internal evidence should default to `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`.
 - External research should default to `<project>/references/external/<topic>-research-YYYY-MM-DD.md`.
 - For rule-system changes under `agents/`, update current rules directly and do not create rule-side workflow history documents.
@@ -158,9 +157,10 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 
 The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
 The gate checker reads workflow state from project-document frontmatter first, then validates that handoff content supports that declared state.
-For real projects, pass `<project>/current-project.md` as the default `--task-doc` / `--handoff-doc` input. Archived `docs/pipeline/` files remain valid history, but they are not the default gate target.
+For real projects, pass the current requirement's pipeline document (the most recent `<project>/docs/pipeline/YYYY-MM-DD-*.md` with `workflow_completion_passed: 0`) as the default `--task-doc` / `--handoff-doc` input.
+Historical pipeline documents with `workflow_completion_passed: 1` remain valid history, but they are not the default gate target for new work.
 The implementation gate validates `workflow_current_stage=solution-designer`, `workflow_solution_approved=1`, `workflow_pre_chain_verified=1`, and a complete pre-implementation chain.
-The completion gate validates one project document containing the full 8-role chain from requirement-analyst through knowledge-keeper.
+The completion gate validates one pipeline document containing the full 8-role chain from requirement-analyst through knowledge-keeper.
 The workflow gate also runs the handoff quality checker by default.
 The quality checker is mandatory during normal workflow execution.
 Use these frontmatter fields as the minimum workflow state:

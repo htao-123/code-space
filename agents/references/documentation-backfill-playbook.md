@@ -22,19 +22,14 @@ python3 agents/scripts/upgrade_legacy_project_doc.py --project-doc <doc> --write
 
 Then continue with the backfill or normal workflow checks using the upgraded project document.
 
-For real projects, after upgrade or backfill, place the gate-facing current project document at:
-
-```bash
-<project>/current-project.md
-```
-
-Keep historical requirement documents under:
+For real projects, after upgrade or backfill, place all pipeline documents under:
 
 ```bash
 <project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md
 ```
 
-Do not treat archived `docs/pipeline/` files as the default gate input.
+The active requirement is the most recent pipeline document with `workflow_completion_passed: 0`.
+Completed requirements have `workflow_completion_passed: 1` and serve as historical records.
 
 ## Principle
 
@@ -80,13 +75,15 @@ The document should explicitly include:
 - `- 需求标识：...`
 - `- 项目落点：...`
 
-For real projects, the default current document filename is `current-project.md`.
-Use these naming rules by default:
+For real projects, use these naming rules by default:
 
-- current project document: `<project>/current-project.md`
-- historical requirement document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
+- pipeline document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
 - internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
 - external research: `<project>/references/external/<topic>-research-YYYY-MM-DD.md`
+
+The active requirement is identified by:
+- Most recent filename date (YYYY-MM-DD prefix)
+- `workflow_completion_passed: 0` in frontmatter
 
 ### 3. Mark Unknowns Explicitly
 

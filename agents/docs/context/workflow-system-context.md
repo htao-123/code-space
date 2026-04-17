@@ -29,7 +29,7 @@ This repository maintains the AI engineering workflow itself, including root wor
 
 ## Rule Governance
 
-- 流程复盘结论：真实项目的 current project document 路径此前只要求“在项目路径里”，但没有明确默认文件名和历史文档位置，导致迁移后 gate 输入和历史文档位置出现歧义；现已补充为固定的单 current + 多历史规则。
-- 值得保留的做法：项目文档与规则治理分离；规则系统自改只更新当前规则与当前上下文；workflow 状态以 frontmatter 为主；当前文档固定路径、历史文档固定目录。
-- 需要修正或移除的规则：将“current project document 只需位于项目路径内”的宽泛表述收紧为明确约定：`<project>/current-project.md` 作为默认 gate 输入，`<project>/docs/pipeline/` 作为历史需求文档目录。
-- 规则更新状态：已完成真实项目文档布局与命名规则收口，默认采用 `current-project.md`、`docs/pipeline/`、`references/internal/`、`references/external/` 结构。
+- 流程复盘结论：真实项目此前采用 current-project.md 与 docs/pipeline/ 双文档系统，造成管理复杂性和概念混淆；现已统一为单一 docs/pipeline/ 结构，通过 workflow_completion_passed 字段区分活动需求与历史需求。
+- 值得保留的做法：项目文档与规则治理分离；规则系统自改只更新当前规则与当前上下文；workflow 状态以 frontmatter 为主；统一文档结构简化管理。
+- 需要修正或移除的规则：将双文档系统改为单一文档结构；所有项目文档统一位于 `<project>/docs/pipeline/` 目录；活动需求为最新日期且 `workflow_completion_passed: 0` 的文档；已完成需求为 `workflow_completion_passed: 1` 的文档。
+- 规则更新状态：已完成简化，移除 current-project.md 双重文档系统，统一采用 docs/pipeline/ 结构，通过 frontmatter 字段自动区分活动和历史需求。

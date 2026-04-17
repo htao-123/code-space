@@ -13,18 +13,31 @@ Use [pipeline-contract.md](./references/pipeline-contract.md) as the source of t
 
 This skill must override any tendency to "just do the work directly" or to invent a shortcut. When this workflow exists, you must obey it strictly.
 This also includes structure decisions: when creating a new project or substantial subproject, require a dedicated folder instead of scattering files at repository root.
-This also includes documentation discipline: before development begins, require a current project document with workflow frontmatter so progress does not depend on memory alone.
-For real project work, that current project document belongs inside the real project path.
-For real project work, the default current project document path is `<project>/current-project.md`.
-Historical requirement documents belong under `<project>/docs/pipeline/` using `YYYY-MM-DD-<project>-<topic>-<work-type>.md` naming and are not the default gate input.
-Each historical requirement document must map to exactly one `requirement_id`.
-When a new independent requirement starts, archive the previous current project document into `docs/pipeline/` before starting the new `<project>/current-project.md`.
-When the work is a continuation of the same requirement, keep updating `<project>/current-project.md` and append history only to that same requirement's archived document if needed.
-During research, use `<project>/current-project.md` as the primary document.
-Only open the matching `docs/pipeline/` historical document when you need prior decisions, stage evolution, earlier handoffs, or evidence indexes for that same requirement.
-Historical documents are secondary research inputs and do not replace the current document as the default gate-facing source of truth.
+This also includes documentation discipline: before development begins, require a pipeline document with workflow frontmatter so progress does not depend on memory alone.
+For real project work, all pipeline documents live under `<project>/docs/pipeline/`.
+Each pipeline document maps to exactly one `requirement_id` and serves as both the current working document and historical record.
+The active requirement is the most recent pipeline document with `workflow_completion_passed: 0`.
+Completed requirements have `workflow_completion_passed: 1` and serve as historical records.
+
+**Archive Trigger and Completion Check:**
+- A requirement is only considered complete when the project document frontmatter declares `workflow_current_stage: complete` and `workflow_completion_passed: 1`.
+- When a new user request arrives, the orchestrator MUST first check the project's `docs/pipeline/` directory for existing documents.
+- Check the most recent pipeline document's frontmatter for completion status:
+  - **If completed** (`workflow_completion_passed: 1`): the document is historical, create a new pipeline document for the new requirement.
+  - **If not completed**: ask the user whether to:
+    1. Continue and complete the previous requirement first, OR
+    2. Explicitly abandon the previous requirement and mark it abandoned in the frontmatter, OR
+    3. Pause the previous requirement and start the new one (only if explicitly approved).
+- Do not automatically overwrite or discard an in-progress pipeline document without user confirmation.
+- When marking a requirement as abandoned, preserve the full frontmatter workflow status as historical record and add an `abandoned: true` flag.
+
+When a new independent requirement starts, create a new pipeline document `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md` with a unique `requirement_id`.
+When a requirement continues, keep updating the same pipeline document and append evolution history as needed.
+During research, the current requirement's pipeline document is the primary workflow input.
+Only open historical pipeline documents when you need prior decisions, stage evolution, earlier handoffs, or evidence indexes for that same or related requirements.
+Historical pipeline documents are secondary research inputs and do not replace the current document as the default gate-facing source of truth.
 Use these artifact naming rules for real-project workflow execution:
-- current project document: `<project>/current-project.md`
+- project document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
 - historical requirement document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
 - requirement id: `<WORKTYPE>-<PROJECT>-<TOPIC>-NNN`
 - internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
@@ -92,11 +105,10 @@ You may not end a requirement halfway merely because an intermediate role comple
 
 ### Documentation-First Check
 
-- Before implementation, confirm that the current work has a current project document that reflects the latest understanding.
-- If the task changes materially, update the current project document before continuing development.
+- Before implementation, confirm that the current work has a pipeline document under `<project>/docs/pipeline/` that reflects the latest understanding.
+- If the task changes materially, update the current pipeline document before continuing development.
 - Treat undocumented implementation as a process violation because it makes the workflow depend on memory.
-- If the work is on a real project, keep that project document in the real project path rather than under `agents/docs/`.
-- For real projects, prefer `<project>/current-project.md` as the gate-facing current document and treat `docs/pipeline/` files as archived history rather than the default gate target.
+- If the work is on a real project, all pipeline documents must be under `<project>/docs/pipeline/`, not under `agents/docs/`.
 - If the work is on the rule system itself, do not create or retain rule-side workflow history documents; update the current rules and current reusable context only.
 - If the work is on the rule system itself because project execution exposed a real workflow-rule or process problem, update the fixed `## Rule Governance` section in `agents/docs/context/workflow-system-context.md` as part of the current reusable context.
 - If an existing project has no usable documentation, require a minimum documentation backfill before continuing.
@@ -218,7 +230,8 @@ Under `【缺失项】`, include:
 - missing evidence
 - conflicts between previous constraints and current request
 - missing dedicated project folder decision when the task creates a new project
-- missing current project document or stale handoff that no longer matches the work
+- missing or incomplete pipeline document under `<project>/docs/pipeline/`
+- stale handoff that no longer matches the work
 - missing required research for the current role
 - missing external verification where the solution may be time-sensitive
 - missing minimum documentation for an existing undocumented project
@@ -249,7 +262,7 @@ Under `【停止条件】`, include:
 - bypassing this workflow because the agent thinks a shortcut is faster
 - inventing a parallel "lightweight" process without explicit approval
 - starting a new project in the repository root before deciding its dedicated folder
-- implementing from memory without first updating the current project document
+- implementing from memory without first updating the current pipeline document
 - pausing for unnecessary user confirmation when the workflow already determines the next action
 - stopping after a mid-pipeline role when the requirement has not yet reached `knowledge-keeper`
 - skipping required research before a role outputs its result
