@@ -41,7 +41,7 @@ During research, the current requirement's pipeline document is the primary work
 Historical pipeline documents are secondary research inputs used only for prior decisions, stage evolution, earlier handoffs, or evidence indexes.
 Use these naming rules for real-project workflow artifacts:
 - project document: `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md`
-- requirement id: `<WORKTYPE>-<<PROJECT>-<TOPIC>-NNN`
+- requirement id: `<WORKTYPE>-<PROJECT>-<TOPIC>-NNN`
 - internal evidence: `<project>/references/internal/<topic>-<artifact>-YYYY-MM-DD.md`
 - external research: `<project>/references/external/<topic>-research-YYYY-MM-DD.md`
 The project document should store current state, current conclusions, and evidence indexes; long-form raw evidence should default to `references/internal` or `references/external`.
@@ -424,13 +424,9 @@ Ask only when:
 
 ## Enforcement Recommendation
 
-Before implementation, run the repository gate checker:
+Before implementation, execute the repository workflow gate by following `agents/scripts/workflow-gate-checklist.md`.
 
-```bash
-python3 agents/scripts/check_workflow_gate.py --help
-```
-
-Use it to verify:
+Use the checklist to verify:
 
 - current project document exists
 - required frontmatter workflow fields exist
@@ -445,25 +441,21 @@ Use it to verify:
 - existing-project work has completed required documentation backfill before downstream roles continue
 - bugfix-mode handoffs include symptom, repro, expected/actual result, root cause summary, and regression scope when the validated stage requires them
 
-## Enforcement Fallback Rule
+## Enforcement Rule
 
-Automatic gate first, manual checklist second.
+Workflow enforcement is standardized on `agents/scripts/workflow-gate-checklist.md`.
 
-If the gate script cannot run because the environment is missing a required runtime or command:
+Requirements:
 
-1. report the exact failure
-2. perform a lightweight preflight when possible
-3. fall back to the manual checklist
+1. execute the checklist in order
+2. record explicit pass/fail results
+3. repair failed workflow artifacts before proceeding
+4. do not skip enforcement because automation is unavailable or inconvenient
 
-The workflow must not skip enforcement just because automation is unavailable.
-
-Implementation may begin only after one of these is true:
-
-- the automatic gate passes
-- the manual checklist has been completed and recorded in the project document
+Implementation may begin only after the checklist has been completed and recorded as passing for the current stage.
 
 Use stage-specific gate validation as the workflow advances, and use the completion gate before declaring a requirement finished.
-The gate reads project-document frontmatter first, then validates that handoff content supports the declared status.
+The checklist reads project-document frontmatter first, then validates that handoff content supports the declared status.
 The implementation gate validates the full pre-implementation chain.
 The completion gate validates the full 8-role chain in one project document and rejects partial closing-only inputs.
-The workflow gate should run the handoff quality checker during normal workflow execution.
+The workflow gate should enforce the handoff quality checker rules during normal workflow execution.

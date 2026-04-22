@@ -26,10 +26,9 @@ Completed requirements have `workflow_completion_passed: 1` and serve as histori
   - **If completed** (`workflow_completion_passed: 1`): the document is historical, create a new pipeline document for the new requirement.
   - **If not completed**: ask the user whether to:
     1. Continue and complete the previous requirement first, OR
-    2. Explicitly abandon the previous requirement and mark it abandoned in the frontmatter, OR
-    3. Pause the previous requirement and start the new one (only if explicitly approved).
+    2. Keep the current requirement as the only active requirement and defer the new request.
 - Do not automatically overwrite or discard an in-progress pipeline document without user confirmation.
-- When marking a requirement as abandoned, preserve the full frontmatter workflow status as historical record and add an `abandoned: true` flag.
+- Do not invent extra frontmatter workflow states or flags that are not defined by the shared workflow contract.
 
 When a new independent requirement starts, create a new pipeline document `<project>/docs/pipeline/YYYY-MM-DD-<project>-<topic>-<work-type>.md` with a unique `requirement_id`.
 When a requirement continues, keep updating the same pipeline document and append evolution history as needed.

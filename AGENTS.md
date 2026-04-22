@@ -40,11 +40,9 @@ Start with [`ai-pipeline-orchestrator`](./agents/skills/ai-pipeline-orchestrator
 
 ## Gate Check
 
-Before implementation work begins, run:
+Before implementation work begins, perform the workflow gate by following [`agents/scripts/workflow-gate-checklist.md`](./agents/scripts/workflow-gate-checklist.md).
 
-```bash
-python3 agents/scripts/check_workflow_gate.py --help
-```
+This checklist is the single source of truth for workflow gate validation. AI must inspect it item by item, record explicit pass/fail results, and stop to repair workflow artifacts before coding when any required item fails.
 
 Use this gate to verify:
 
@@ -64,8 +62,8 @@ Do not repair a failed gate by silently changing workflow state fields or handof
 Run the appropriate stage gate, not only `--stage implementer`.
 Use later stages as the workflow advances, and use the completion gate before treating a requirement as finished.
 The completion gate must validate one project document containing the full 8-role chain from requirement-analyst through knowledge-keeper; do not run completion with partial closing-chain inputs.
-The workflow gate should also run the handoff quality checker by default.
-The quality checker may not be disabled in normal workflow execution.
+The workflow gate must execute the role-level handoff quality checks embedded in [`agents/scripts/workflow-gate-checklist.md`](./agents/scripts/workflow-gate-checklist.md) by default.
+Those checklist-based quality checks may not be skipped or disabled in normal workflow execution.
 Use stable identifiers for workflow and handoff relations:
 
 - `requirement_id`
@@ -98,18 +96,18 @@ Bugfix work must not skip:
 - regression scope definition
 - post-fix regression validation
 
-## Gate Fallback
+## Gate Execution
 
-If the automatic gate cannot run because the local environment is missing a required runtime or command:
+Workflow gate execution is standardized on [`agents/scripts/workflow-gate-checklist.md`](./agents/scripts/workflow-gate-checklist.md).
 
-1. report the exact environment problem
-2. try a lightweight preflight check first
-3. switch to the manual checklist in [`agents/scripts/workflow-gate-checklist.md`](./agents/scripts/workflow-gate-checklist.md)
+Requirements:
 
-Implementation may proceed only after either:
+1. AI must execute the checklist in order
+2. AI must explicitly record pass/fail status for each required section
+3. AI must not skip failed checks by editing workflow state fields prematurely
+4. Implementation may proceed only after the checklist has been completed and recorded as passing for the current stage
 
-- the automatic gate passes, or
-- the manual checklist is explicitly completed and recorded
+The gate may not be skipped simply because automation is unavailable or inconvenient.
 
 ## Confirmation Policy
 
@@ -194,11 +192,13 @@ If an existing project has no usable documentation:
 3. base that documentation on repository facts, not guesses
 4. treat that backfill document as required workflow input before downstream roles continue
 
-If workflow needs to read and continue using an existing project's current project document, and that document still uses the legacy pre-frontmatter workflow shape, upgrade it before continuing with the current rules:
+If workflow needs to read and continue using an existing project's current project document, and that document still uses the legacy pre-frontmatter workflow shape, manually normalize it according to [`agents/references/documentation-backfill-playbook.md`](./agents/references/documentation-backfill-playbook.md) before continuing with the current rules.
 
-```bash
-python3 agents/scripts/upgrade_legacy_project_doc.py --project-doc <doc> --write
-```
+Required normalization includes at least:
+
+- add the current frontmatter workflow fields
+- normalize handoff headings and metadata labels
+- align the document with the current `<project>/docs/pipeline/` structure
 
 Minimum viable documentation should cover:
 

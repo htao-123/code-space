@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository maintains the AI engineering workflow itself, including root workflow rules, role skills, the pipeline contract, the frontmatter-first gate script, the handoff quality checker, and the manual gate fallback checklist.
+This repository maintains the AI engineering workflow itself, including root workflow rules, role skills, the pipeline contract, the checklist-based workflow gate, documentation backfill rules, and related reusable workflow context.
 
 ## Relevant Modules
 
@@ -10,17 +10,14 @@ This repository maintains the AI engineering workflow itself, including root wor
 - `agents/README.md`: workflow overview and shared rules.
 - `agents/skills/ai-pipeline-orchestrator/SKILL.md`: orchestration entry and skip-prevention contract.
 - `agents/skills/ai-pipeline-orchestrator/references/pipeline-contract.md`: source-of-truth pipeline contract.
-- `agents/scripts/check_workflow_gate.py`: stage gate checker.
-- `agents/scripts/check_handoff_quality.py`: handoff structure and role-quality checker.
-- `agents/scripts/upgrade_legacy_project_doc.py`: legacy project-document upgrader for pre-frontmatter docs.
-- `agents/scripts/workflow-gate-checklist.md`: manual fallback checklist.
+- `agents/scripts/workflow-gate-checklist.md`: single source of truth for workflow gate validation.
 
 ## Known Facts
 
 - Workflow execution is document-first and must use the eight-role pipeline for non-trivial changes.
 - Workflow status is declared in project-document frontmatter rather than inferred from brittle prose.
-- The gate checker validates frontmatter workflow fields, role ids, requirement identifiers, handoff order, and stage-specific completion conditions.
-- The quality checker validates current handoff structure plus tester and knowledge-keeper role-specific required labels.
+- The checklist-driven gate validates frontmatter workflow fields, role ids, requirement identifiers, handoff order, and stage-specific completion conditions.
+- The checklist and playbook together validate current handoff structure plus tester and knowledge-keeper role-specific required labels.
 
 ## Unknowns And Risks
 

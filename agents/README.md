@@ -114,7 +114,6 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - Every handoff block must also record these metadata labels:
 
 ```md
-- 当前角色：
 - 当前角色标识：
 - 当前交接标识：
 - 需求标识：
@@ -148,21 +147,18 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 ## Useful References
 
 - [Pipeline Contract](./skills/ai-pipeline-orchestrator/references/pipeline-contract.md)
-- [Workflow Gate Checker](./scripts/check_workflow_gate.py)
-- [Handoff Quality Checker](./scripts/check_handoff_quality.py)
 - [Workflow Gate Checklist](./scripts/workflow-gate-checklist.md)
-- [Legacy Project Doc Upgrader](./scripts/upgrade_legacy_project_doc.py)
+  - Single source of truth for workflow gate validation
 - [External Research Playbook](./references/external-research-playbook.md)
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
-The gate checker supports stage-specific validation and a final completion gate. Use the matching stage instead of validating only implementation.
-The gate checker reads workflow state from project-document frontmatter first, then validates that handoff content supports that declared state.
-For real projects, pass the current requirement's pipeline document (the most recent `<project>/docs/pipeline/YYYY-MM-DD-*.md` with `workflow_completion_passed: 0`) as the default `--task-doc` / `--handoff-doc` input.
+Workflow gate execution is driven by the checklist, not an automatic gate script.
+The checklist validates workflow state from project-document frontmatter first, then validates that handoff content supports that declared state.
+For real projects, use the current requirement's pipeline document (the most recent `<project>/docs/pipeline/YYYY-MM-DD-*.md` with `workflow_completion_passed: 0`) as the default gate target.
 Historical pipeline documents with `workflow_completion_passed: 1` remain valid history, but they are not the default gate target for new work.
 The implementation gate validates `workflow_current_stage=solution-designer`, `workflow_solution_approved=1`, `workflow_pre_chain_verified=1`, and a complete pre-implementation chain.
 The completion gate validates one pipeline document containing the full 8-role chain from requirement-analyst through knowledge-keeper.
-The workflow gate also runs the handoff quality checker by default.
-The quality checker is mandatory during normal workflow execution.
+The checklist must still enforce the handoff quality checker rules during normal workflow execution.
 Use these frontmatter fields as the minimum workflow state:
 `requirement_id`, `workflow_project_type`, `workflow_work_type`, `workflow_doc_backfilled`, `workflow_current_stage`, `workflow_solution_approved`, `workflow_pre_chain_verified`, `workflow_implementer_passed`, `workflow_reviewer_passed`, `workflow_tester_passed`, `workflow_knowledge_keeper_passed`, `workflow_completion_passed`.
 
@@ -203,11 +199,7 @@ When an existing project lacks usable documentation, follow:
 
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
-When workflow needs to read and continue using an existing project's older project document, and that document predates the current frontmatter-first workflow, upgrade it before continuing:
-
-```bash
-python3 agents/scripts/upgrade_legacy_project_doc.py --project-doc <doc> --write
-```
+When workflow needs to read and continue using an existing project's older project document, and that document predates the current frontmatter-first workflow, manually normalize it according to the Documentation Backfill Playbook before continuing.
 
 When current external facts may affect correctness, follow:
 

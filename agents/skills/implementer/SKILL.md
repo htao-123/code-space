@@ -19,12 +19,7 @@ Implement only the approved design. You do not optimize beyond the design unless
 
 1. Complete internal research on the design handoff, current project document, current code, and approved file scope.
 2. Complete external research and record official facts, mainstream approaches, and mature implementation patterns relevant to the implementation.
-3. Run the workflow gate checker before coding:
-
-```bash
-python3 agents/scripts/check_workflow_gate.py --help
-```
-
+3. Execute the workflow gate checklist before coding by following `agents/scripts/workflow-gate-checklist.md`.
 4. Implement only the approved changes.
 5. Keep unrelated code untouched.
 6. Summarize exact changed files and diff-level intent.

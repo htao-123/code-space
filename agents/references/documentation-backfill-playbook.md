@@ -14,13 +14,16 @@ Use this playbook when:
 - there is no usable README, project document, or handoff chain for the current work
 - the current change cannot be safely placed using existing documentation
 
-If workflow needs to read and continue using a project document, and that document still uses the older pre-frontmatter workflow shape, first run:
+If workflow needs to read and continue using a project document, and that document still uses the older pre-frontmatter workflow shape, first normalize it manually into the current frontmatter-first workflow shape.
 
-```bash
-python3 agents/scripts/upgrade_legacy_project_doc.py --project-doc <doc> --write
-```
+Manual normalization must include at least:
 
-Then continue with the backfill or normal workflow checks using the upgraded project document.
+- adding the required workflow frontmatter fields
+- converting legacy handoff blocks to the current mandatory heading set
+-补齐 metadata labels、调研标签与阶段所需字段
+- ensuring the document lives under `<project>/docs/pipeline/` for real project work
+
+Then continue with the backfill or normal workflow checks using the normalized project document.
 
 For real projects, after upgrade or backfill, place all pipeline documents under:
 
@@ -84,6 +87,77 @@ For real projects, use these naming rules by default:
 The active requirement is identified by:
 - Most recent filename date (YYYY-MM-DD prefix)
 - `workflow_completion_passed: 0` in frontmatter
+
+
+### 2.5 Normalize Legacy Project Documents
+
+When an older project document predates the current workflow shape, normalize it manually before using it as gate input.
+
+Normalization checklist:
+
+- move the document into `<project>/docs/pipeline/` before treating it as active real-project workflow input
+- add frontmatter with the current required workflow fields:
+  - `requirement_id`
+  - `workflow_project_type`
+  - `workflow_work_type`
+  - `workflow_doc_backfilled`
+  - `workflow_current_stage`
+  - `workflow_solution_approved`
+  - `workflow_pre_chain_verified`
+  - `workflow_implementer_passed`
+  - `workflow_reviewer_passed`
+  - `workflow_tester_passed`
+  - `workflow_knowledge_keeper_passed`
+  - `workflow_completion_passed`
+- normalize frontmatter defaults:
+  - all workflow pass fields must be `0` or `1`
+  - `workflow_current_stage` must use the current role ids:
+    - `requirement-analyst`
+    - `architect`
+    - `code-investigator`
+    - `solution-designer`
+    - `implementer`
+    - `reviewer`
+    - `tester`
+    - `knowledge-keeper`
+    - `complete`
+  - `requirement_id` must match the active requirement across the whole document
+- map any legacy role display names or old role ids into the current role ids before continuing
+- ensure every handoff block contains, in this exact order:
+  - `【角色结论】`
+  - `【已核实输入】`
+  - `【调研发现】`
+  - `【交付物】`
+  - `【约束】`
+  - `【校验标准】`
+  - `【禁止事项】`
+  - `【交接给下一个角色】`
+- ensure every handoff block also records:
+  - `- 当前角色标识：`
+  - `- 当前交接标识：`
+  - `- 需求标识：`
+  - `- 下一角色标识：`
+- inject stage-required labels when they are missing:
+  - tester must include:
+    - `- 运行时验证：`
+    - `- 外部依赖验证：`
+    - `- 未验证原因：`
+  - knowledge-keeper must include:
+    - `- 需求复盘结论：`
+    - `- 自我审查结论：`
+    - `- 自我纠错项：`
+  - solution-designer handing off to implementer must include:
+    - `- 用户方案批准：`
+- if `workflow_work_type: bugfix`, ensure the document also records:
+  - `问题类型：bugfix`
+  - `复现步骤：`
+  - `预期结果：`
+  - `实际结果：`
+  - `根因摘要：`
+  - `回归检查范围：`
+- remove obsolete workflow structure that conflicts with the current pipeline contract, including old heading shapes, outdated metadata labels, and stale placeholders such as `待补录`
+
+Do not treat a legacy document as valid gate input until the normalization has been completed.
 
 ### 3. Mark Unknowns Explicitly
 
