@@ -144,9 +144,13 @@ Frontmatter workflow expectations:
 | `code-investigator` | `solution-designer` |
 | `solution-designer` | `implementer` |
 | `implementer` | `reviewer` |
+| `reviewer` | `implementer` when blocking findings require review-fix |
 | `reviewer` | `tester` |
 | `tester` | `knowledge-keeper` |
 | `knowledge-keeper` | terminal |
+
+`reviewer -> tester` is allowed only when the review-fix-review loop has no blocking findings.
+`reviewer -> implementer` is allowed only for fixing reviewed blocking findings.
 
 ## Input Discipline
 
@@ -213,6 +217,7 @@ The next role may not:
 - stays inside approved file scope
 - follows the design handoff
 - avoids unrelated refactors
+- when review returns blocking findings, fixes only those reviewed findings and records the fix scope before returning to reviewer
 - for historical-data/schema mismatch, implements the approved migration script or migration entrypoint instead of introducing default permanent compatibility branches
 - in bugfix mode, fixes the validated root cause and records regression scope
 
@@ -231,7 +236,23 @@ The next role may not:
 - flags bugs and regressions
 - checks scope drift
 - records residual risk
+- returns to `implementer` when P0/P1 findings exist
+- treats P2 findings as fix-by-default; if any P2 is deferred, records the reason, risk, and explicit user approval
+- sets `workflow_reviewer_passed: 1` only when there are no blocking findings and all required fixes have been re-reviewed
 - in bugfix mode, checks whether the fix addresses root cause instead of only masking the symptom
+
+## Review-Fix-Review Loop
+
+After implementation, review is not a one-time checkpoint. It is a loop:
+
+1. `implementer` produces an implementation handoff.
+2. `reviewer` reviews the implementation and records findings.
+3. If any P0/P1 finding exists, the pipeline must return to `implementer`.
+4. P2 findings are fix-by-default. A deferred P2 requires explicit reason, risk, and user approval in the reviewer handoff.
+5. The implementer may fix only the reviewed findings and must record the fix scope.
+6. The reviewer must re-review the fix scope.
+7. The pipeline may enter `tester` only after the reviewer records that there are no blocking findings.
+8. AI must not set `workflow_reviewer_passed: 1` before the no-blocking-finding condition is met.
 
 ### tester
 
@@ -263,6 +284,8 @@ The pipeline must stop when:
 - the user asks to skip a mandatory gate
 - current work conflicts with prior constraints
 - implementation or review evidence is missing for later stages
+- review has unresolved P0/P1 findings
+- review has unresolved P2 findings without an explicit deferral reason, risk record, and user approval
 - any agent attempts to improvise an alternative process outside this contract
 - a new project is being created but no dedicated folder has been defined yet
 - the current work has no up-to-date project document or planning handoff

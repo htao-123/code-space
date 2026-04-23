@@ -397,6 +397,12 @@ Fix:
   - All planned code changes are finished.
   - Commit intent or implementation record clearly describes the change.
   - The code has passed a basic analysis check such as `dart analyze` or an equivalent check.
+- [ ] **Review-fix-review loop is closed**:
+  - If P0/P1 findings exist, the gate fails and the pipeline must return to implementer.
+  - P2 findings are fixed by default.
+  - Any deferred P2 has explicit deferral reason, risk record, and user approval.
+  - Fixes made after review have been re-reviewed.
+  - `workflow_reviewer_passed: 1` is set only after there are no blocking findings.
 
 **If this fails:**
 ```
@@ -404,7 +410,8 @@ ERROR: Reviewer gate conditions are not satisfied.
 Fix:
 1. Ensure implementation is complete.
 2. Run the relevant analysis check and fix basic issues.
-3. Finish all planned code changes.
+3. Return blocking findings to implementer and re-review the fixes.
+4. Finish all planned code changes.
 ```
 
 ---
