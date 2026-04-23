@@ -656,5 +656,5 @@ After all checks above pass:
 ---
 
 **Last updated:** 2026-04-22  
-**Execution note:** This checklist is executed directly by AI and no longer depends on an automatic gate script.  
+**Execution note:** This checklist is the gate execution mechanism.  
 **Maintainer:** AI Pipeline System

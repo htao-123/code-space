@@ -152,7 +152,7 @@ Do not skip steps unless the immediately prior valid handoff already exists.
 - [External Research Playbook](./references/external-research-playbook.md)
 - [Documentation Backfill Playbook](./references/documentation-backfill-playbook.md)
 
-Workflow gate execution is driven by the checklist, not an automatic gate script.
+Workflow gate execution is checklist-only.
 The checklist validates workflow state from project-document frontmatter first, then validates that handoff content supports that declared state.
 For real projects, use the current requirement's pipeline document (the most recent `<project>/docs/pipeline/YYYY-MM-DD-*.md` with `workflow_completion_passed: 0`) as the default gate target.
 Historical pipeline documents with `workflow_completion_passed: 1` remain valid history, but they are not the default gate target for new work.
